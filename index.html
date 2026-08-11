@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nur Tech - Telegram Product WebApp</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        tg: {
+                            bg: 'var(--tg-theme-bg-color, #f8fafc)',
+                            text: 'var(--tg-theme-text-color, #0f172a)',
+                            hint: 'var(--tg-theme-hint-color, #64748b)',
+                            link: 'var(--tg-theme-link-color, #2563eb)',
+                            button: 'var(--tg-theme-button-color, #3b82f6)',
+                            buttonText: 'var(--tg-theme-button-text-color, #ffffff)',
+                            secondaryBg: 'var(--tg-theme-secondary-bg-color, #ffffff)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --accent-color: #3b82f6;
+            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+        }
+
+        .dark {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --accent-color: #60a5fa;
+            --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+
+        .gradient-btn {
+            background: var(--accent-gradient);
+            transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .gradient-btn:active {
+            transform: scale(0.97);
+        }
+
+        .gradient-text {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Hide scrollbars for slick mobile feel */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Animated Toast Notification */
+        @keyframes slideUp {
+            from { transform: translateY(100%) translateX(-50%); opacity: 0; }
+            to { transform: translateY(0) translateX(-50%); opacity: 1; }
+        }
+        .animate-toast {
+            animation: slideUp 0.3s ease forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20 select-none antialiased">
+    <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col relative">
+        
+        <!-- Top App Header -->
+        <header class="sticky top-0 z-30 glass-panel border-b px-4 py-3 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-laptop text-base"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base leading-tight tracking-tight">Nur Technologies</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                        Telegram Merchant App
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="w-9 h-9 rounded-xl glass-panel border flex items-center justify-center text-slate-600 dark:text-slate-300 hover:scale-105 active:scale-95 transition-all">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content View Area -->
+        <main class="flex-1 p-4 space-y-4">
+            
+            <!-- VIEW 1: PRODUCT DASHBOARD -->
+            <section id="viewDashboard" class="view-section space-y-4">
+                
+                <!-- Search & Filters -->
+                <div class="space-y-2.5">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search laptops (Dell, M3 Pro, i7...)" 
+                               class="w-full pl-10 pr-9 py-2.5 rounded-xl border bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Filter Tags -->
+                    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 text-xs font-medium">
+                        <button onclick="setCategoryFilter('all')" class="cat-filter-btn active px-3 py-1.5 rounded-lg border bg-blue-600 text-white border-blue-600 whitespace-nowrap shadow-sm">All</button>
+                        <button onclick="setCategoryFilter('gaming')" class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">🎮 Gaming</button>
+                        <button onclick="setCategoryFilter('business')" class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">💼 Business</button>
+                        <button onclick="setCategoryFilter('premium')" class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">👑 Premium</button>
+                        <button onclick="setStatusFilter('available')" class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">🟢 Available</button>
+                    </div>
+                </div>
+
+                <!-- Stats Summary Row -->
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="glass-panel p-2.5 rounded-xl text-center border">
+                        <span class="block text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Total</span>
+                        <span id="statTotal" class="text-base font-bold text-slate-800 dark:text-slate-100">0</span>
+                    </div>
+                    <div class="glass-panel p-2.5 rounded-xl text-center border">
+                        <span class="block text-[10px] uppercase font-semibold text-emerald-500 tracking-wider">In Stock</span>
+                        <span id="statAvailable" class="text-base font-bold text-emerald-600 dark:text-emerald-400">0</span>
+                    </div>
+                    <div class="glass-panel p-2.5 rounded-xl text-center border">
+                        <span class="block text-[10px] uppercase font-semibold text-rose-500 tracking-wider">Sold</span>
+                        <span id="statSold" class="text-base font-bold text-rose-600 dark:text-rose-400">0</span>
+                    </div>
+                    <div class="glass-panel p-2.5 rounded-xl text-center border">
+                        <span class="block text-[10px] uppercase font-semibold text-blue-500 tracking-wider">Orders</span>
+                        <span id="statOrders" class="text-base font-bold text-blue-600 dark:text-blue-400">0</span>
+                    </div>
+                </div>
+
+                <!-- Product List Container -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="font-bold text-sm text-slate-700 dark:text-slate-200">Catalog Items</h2>
+                        <span id="resultCount" class="text-xs text-slate-400">Showing 0 products</span>
+                    </div>
+                    <div id="productList" class="space-y-3">
+                        <!-- Products dynamically inserted here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 2: ADD / EDIT PRODUCT FORM -->
+            <section id="viewForm" class="view-section hidden space-y-4">
+                <div class="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <button onclick="switchView('dashboard')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm p-1">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <h2 id="formHeading" class="font-bold text-base">Add New Product</h2>
+                    </div>
+                    <button type="button" onclick="resetForm()" class="text-xs text-slate-400 hover:text-rose-500">
+                        <i class="fa-solid fa-rotate-left mr-1"></i>Reset
+                    </button>
+                </div>
+
+                <form id="productForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                    <input type="hidden" id="editProductId" value="">
+
+                    <!-- 1. Product Image Upload Zone -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                            Product Images (Max 5) <span class="text-rose-500">*</span>
+                        </label>
+                        <div id="dropZone" onclick="document.getElementById('imageFileInput').click()"
+                             class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 text-center cursor-pointer hover:border-blue-500 transition-colors glass-panel bg-slate-50/50 dark:bg-slate-800/30">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-blue-500 mb-1"></i>
+                            <p class="text-xs font-medium text-slate-600 dark:text-slate-300">Tap to upload or drop laptop photos</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">PNG, JPG, WEBP up to 5MB each</p>
+                            <input type="file" id="imageFileInput" accept="image/*" multiple onchange="handleImageUpload(event)" class="hidden">
+                        </div>
+                        
+                        <!-- Image Previews Container -->
+                        <div id="imagePreviewContainer" class="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                            <!-- Dynamically added image thumbnails -->
+                        </div>
+                    </div>
+
+                    <!-- 2. Basic Info Section -->
+                    <div class="glass-panel p-3.5 rounded-xl border space-y-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Basic Information</h3>
+
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Product Title <span class="text-rose-500">*</span></label>
+                            <input type="text" id="inputTitle" required placeholder="e.g. ASUS ROG Strix G16 Core i9 13th Gen"
+                                   oninput="updateLivePreview()"
+                                   class="w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Price (ETB) <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <input type="text" id="inputPrice" required placeholder="85,000"
+                                           oninput="formatPriceInput(this); updateLivePreview();"
+                                           class="w-full pl-3 pr-10 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold">
+                                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">ETB</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Category <span class="text-rose-500">*</span></label>
+                                <select id="inputCategory" onchange="updateLivePreview()"
+                                        class="w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <option value="gaming">🎮 Gaming</option>
+                                    <option value="business">💼 Business</option>
+                                    <option value="premium">👑 Premium</option>
+                                    <option value="standard">💻 Standard</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Availability Status</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="inputStatusToggle" checked onchange="updateLivePreview()" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-500"></div>
+                                <span id="statusToggleLabel" class="ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Available</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 3. Specifications Table (Default + Dynamic) -->
+                    <div class="glass-panel p-3.5 rounded-xl border space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Specifications</h3>
+                            <button type="button" onclick="openAddSpecModal()" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> Custom Spec
+                            </button>
+                        </div>
+
+                        <!-- Mandatory / Default Laptop Specs -->
+                        <div class="space-y-2.5 text-xs">
+                            <div>
+                                <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                    💻 Processor
+                                </label>
+                                <input type="text" id="specProcessor" list="processorOptions" placeholder="e.g. Intel Core i7-13700H" oninput="updateLivePreview()"
+                                       class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <datalist id="processorOptions">
+                                    <option value="Intel Core i5 12th Gen"></option>
+                                    <option value="Intel Core i7 13th Gen"></option>
+                                    <option value="Intel Core i9 14th Gen"></option>
+                                    <option value="AMD Ryzen 7 7735HS"></option>
+                                    <option value="AMD Ryzen 9 7940HS"></option>
+                                    <option value="Apple M2 Pro (10-Core)"></option>
+                                    <option value="Apple M3 Max (16-Core)"></option>
+                                </datalist>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                        🧠 RAM
+                                    </label>
+                                    <input type="text" id="specRam" list="ramOptions" placeholder="e.g. 16GB DDR5 4800MHz" oninput="updateLivePreview()"
+                                           class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <datalist id="ramOptions">
+                                        <option value="8GB DDR4"></option>
+                                        <option value="16GB DDR5"></option>
+                                        <option value="32GB DDR5"></option>
+                                        <option value="64GB DDR5"></option>
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                        💾 Storage
+                                    </label>
+                                    <input type="text" id="specStorage" list="storageOptions" placeholder="e.g. 1TB NVMe Gen4 SSD" oninput="updateLivePreview()"
+                                           class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <datalist id="storageOptions">
+                                        <option value="256GB NVMe SSD"></option>
+                                        <option value="512GB NVMe SSD"></option>
+                                        <option value="1TB NVMe Gen4 SSD"></option>
+                                        <option value="2TB NVMe SSD"></option>
+                                    </datalist>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                        🖥️ Screen Size
+                                    </label>
+                                    <input type="text" id="specScreen" list="screenOptions" placeholder="e.g. 15.6' FHD IPS 144Hz" oninput="updateLivePreview()"
+                                           class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <datalist id="screenOptions">
+                                        <option value="13.3' Retina Display"></option>
+                                        <option value="14.0' QHD 120Hz"></option>
+                                        <option value="15.6' FHD IPS 144Hz"></option>
+                                        <option value="16.0' ROG Nebula QHD+ 240Hz"></option>
+                                        <option value="17.3' FHD IPS 165Hz"></option>
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                        🎮 Graphics
+                                    </label>
+                                    <input type="text" id="specGraphics" list="gpuOptions" placeholder="e.g. RTX 4060 8GB GDDR6" oninput="updateLivePreview()"
+                                           class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <datalist id="gpuOptions">
+                                        <option value="Intel Iris Xe Graphics"></option>
+                                        <option value="NVIDIA RTX 3050 4GB"></option>
+                                        <option value="NVIDIA RTX 4060 8GB"></option>
+                                        <option value="NVIDIA RTX 4070 8GB"></option>
+                                        <option value="NVIDIA RTX 4080 12GB"></option>
+                                    </datalist>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Custom Specs Table Container -->
+                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <span class="block text-[11px] font-semibold text-slate-400 mb-2">CUSTOM SPECIFICATIONS</span>
+                            <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold">
+                                        <tr>
+                                            <th class="p-2">Specification</th>
+                                            <th class="p-2">Value</th>
+                                            <th class="p-2 text-center w-8">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customSpecsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <!-- Dynamic custom spec rows go here -->
+                                        <tr id="noCustomSpecsRow">
+                                            <td colspan="3" class="p-3 text-center text-slate-400 italic text-[11px]">No custom specs added yet. Tap "+ Custom Spec" above.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Contact Info Section -->
+                    <div class="glass-panel p-3.5 rounded-xl border space-y-2.5">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Merchant Contact Info</h3>
+                        <div class="space-y-2 text-xs">
+                            <div>
+                                <label class="block font-medium mb-1">📞 Phone Number</label>
+                                <input type="text" id="contactPhone" value="0911646359"
+                                       class="w-full px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">✈️ Telegram Handle</label>
+                                <input type="text" id="contactTelegram" value="@Yenusabr"
+                                       class="w-full px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">📍 Store Location</label>
+                                <input type="text" id="contactAddress" value="Bole Medhanialem, L'Amir Building, 2nd Floor"
+                                       class="w-full px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Real-Time Live Preview Section -->
+                    <div class="space-y-2">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">📱 Telegram Channel Preview</span>
+                        <div class="glass-panel border rounded-xl p-3 bg-gradient-to-br from-slate-50 to-blue-50/20 dark:from-slate-900 dark:to-slate-800">
+                            <div id="livePreviewCard">
+                                <!-- Dynamic Preview rendered in real time -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Action Submit Button -->
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-3 rounded-xl text-white font-bold text-sm gradient-btn shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span id="submitBtnText">Save & Publish Product</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- VIEW 3: PRODUCT DETAIL VIEW -->
+            <section id="viewDetail" class="view-section hidden space-y-4">
+                <div class="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
+                    <button onclick="switchView('dashboard')" class="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Catalog
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <button id="detailEditBtn" class="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 text-xs font-medium">
+                            <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
+                        </button>
+                        <button id="detailDeleteBtn" class="px-2.5 py-1 rounded-lg bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-300 text-xs font-medium">
+                            <i class="fa-solid fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+
+                <div id="detailContent" class="space-y-4">
+                    <!-- Dynamic Detail Content rendered here -->
+                </div>
+            </section>
+
+            <!-- VIEW 4: TEMPLATES VIEW -->
+            <section id="viewTemplates" class="view-section hidden space-y-4">
+                <div class="border-b pb-2 border-slate-200 dark:border-slate-800">
+                    <h2 class="font-bold text-base">Quick Product Templates</h2>
+                    <p class="text-xs text-slate-400">Pre-fill specifications in one click to list fast</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="glass-panel p-4 rounded-xl border flex flex-col justify-between hover:border-blue-500 transition-all">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center text-lg font-bold shrink-0">🎮</div>
+                            <div>
+                                <h3 class="font-bold text-sm">Gaming Beast Template</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">High Performance, Intel i9 / Ryzen 9, RTX 4070+, 32GB RAM, 240Hz screen</p>
+                            </div>
+                        </div>
+                        <button onclick="applyTemplate('gaming')" class="mt-3 w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-bolt"></i> Use Gaming Template
+                        </button>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-xl border flex flex-col justify-between hover:border-blue-500 transition-all">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-lg font-bold shrink-0">💼</div>
+                            <div>
+                                <h3 class="font-bold text-sm">Executive Business Template</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Ultralight, Core i7/i5, 16GB RAM, 512GB SSD, Long Battery Life</p>
+                            </div>
+                        </div>
+                        <button onclick="applyTemplate('business')" class="mt-3 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-bolt"></i> Use Business Template
+                        </button>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-xl border flex flex-col justify-between hover:border-blue-500 transition-all">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-lg font-bold shrink-0">👑</div>
+                            <div>
+                                <h3 class="font-bold text-sm">Premium Flagship Template</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Apple MacBook Pro M3 / XPS OLED 4K, 32GB RAM, Premium Metal Body</p>
+                            </div>
+                        </div>
+                        <button onclick="applyTemplate('premium')" class="mt-3 w-full py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-bolt"></i> Use Premium Template
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 5: ORDERS VIEW -->
+            <section id="viewOrders" class="view-section hidden space-y-4">
+                <div class="border-b pb-2 border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-base">Recent Inquiries & Orders</h2>
+                        <p class="text-xs text-slate-400">Incoming buyer requests from Telegram</p>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">3 New</span>
+                </div>
+
+                <div id="ordersList" class="space-y-3">
+                    <!-- Sample Orders Loaded dynamically -->
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Sticky Bottom Tab Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass-panel border-t border-slate-200 dark:border-slate-800 z-40 px-3 py-1.5 flex items-center justify-around">
+            <button onclick="switchView('dashboard')" id="navDashboard" class="nav-btn active flex flex-col items-center py-1 px-3 rounded-xl text-blue-600 dark:text-blue-400 transition-all">
+                <i class="fa-solid fa-boxes-stacked text-base mb-0.5"></i>
+                <span class="text-[10px] font-semibold">Catalog</span>
+            </button>
+            <button onclick="switchView('form')" id="navForm" class="nav-btn flex flex-col items-center py-1 px-3 rounded-xl text-slate-400 transition-all">
+                <div class="w-8 h-8 rounded-full gradient-btn text-white flex items-center justify-center shadow-md shadow-blue-500/30 -mt-3">
+                    <i class="fa-solid fa-plus text-sm"></i>
+                </div>
+                <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Add Item</span>
+            </button>
+            <button onclick="switchView('templates')" id="navTemplates" class="nav-btn flex flex-col items-center py-1 px-3 rounded-xl text-slate-400 transition-all">
+                <i class="fa-solid fa-layer-group text-base mb-0.5"></i>
+                <span class="text-[10px] font-semibold">Templates</span>
+            </button>
+            <button onclick="switchView('orders')" id="navOrders" class="nav-btn flex flex-col items-center py-1 px-3 rounded-xl text-slate-400 transition-all">
+                <i class="fa-solid fa-receipt text-base mb-0.5"></i>
+                <span class="text-[10px] font-semibold">Orders</span>
+            </button>
+        </nav>
+
+        <!-- MODAL: ADD CUSTOM SPECIFICATION -->
+        <div id="addSpecModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl p-4 space-y-3 shadow-2xl border border-slate-200 dark:border-slate-800 animate-toast">
+                <div class="flex items-center justify-between border-b pb-2">
+                    <h3 class="font-bold text-sm">Add Custom Specification</h3>
+                    <button onclick="closeAddSpecModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Specification Name</label>
+                        <input type="text" id="modalSpecKey" list="specKeySuggestions" onchange="handleSpecKeyChange(this.value)" placeholder="e.g. Battery Life, Weight, Warranty"
+                               class="w-full px-3 py-2 text-xs rounded-lg border bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <datalist id="specKeySuggestions">
+                            <option value="Battery Life"></option>
+                            <option value="Display Type"></option>
+                            <option value="Keyboard Backlight"></option>
+                            <option value="Weight"></option>
+                            <option value="Resolution"></option>
+                            <option value="Touch Screen"></option>
+                            <option value="Warranty"></option>
+                            <option value="Operating System"></option>
+                            <option value="Ports"></option>
+                            <option value="Webcam"></option>
+                            <option value="Color"></option>
+                        </datalist>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Specification Value</label>
+                        <input type="text" id="modalSpecValue" list="specValueSuggestions" placeholder="Select or type value..."
+                               class="w-full px-3 py-2 text-xs rounded-lg border bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <datalist id="specValueSuggestions">
+                            <!-- Populated dynamically based on selected spec key -->
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAddSpecModal()" class="px-3 py-1.5 rounded-lg border text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+                    <button type="button" onclick="confirmAddSpec()" class="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">Add Spec</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Notification Toast Container -->
+        <div id="toast" class="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-bold shadow-xl flex items-center gap-2 border border-slate-700">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span id="toastMsg">Product saved successfully!</span>
+        </div>
+
+        <!-- Confirmation Dialog Modal -->
+        <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 max-w-xs w-full space-y-3 text-center shadow-2xl border border-slate-200 dark:border-slate-700">
+                <div class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-600 flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 id="confirmTitle" class="font-bold text-sm">Are you sure?</h3>
+                <p id="confirmText" class="text-xs text-slate-500 dark:text-slate-400">This action cannot be undone.</p>
+                <div class="flex gap-2 pt-1">
+                    <button id="confirmCancelBtn" class="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">Cancel</button>
+                    <button id="confirmOkBtn" class="flex-1 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold">Delete</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ==========================================================================
+           STATE & INITIAL DATA
+           ========================================================================== */
+        const STORAGE_KEY = 'nur_tech_products_v1';
+        let products = [];
+        let uploadedImages = [];
+        let customSpecsList = [];
+        let activeCategoryFilter = 'all';
+        let activeStatusFilter = 'all';
+        let searchQuery = '';
+
+        // Default Sample Laptop Data
+        const SAMPLE_PRODUCTS = [
+            {
+                id: 101,
+                title: "ASUS ROG Strix G16 (2024)",
+                price: "115,000",
+                status: "available",
+                category: "gaming",
+                images: ["https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&w=600&q=80"],
+                specs: {
+                    "Processor": "Intel Core i9-13980HX",
+                    "RAM": "32GB DDR5 4800MHz",
+                    "Storage": "1TB NVMe Gen4 SSD",
+                    "Screen Size": "16.0' QHD+ 240Hz Nebula",
+                    "Graphics": "NVIDIA RTX 4070 8GB",
+                    "Keyboard Backlight": "Per-Key RGB",
+                    "Battery Life": "90Wh 4-Cell",
+                    "Warranty": "1 Year Official"
+                },
+                contact: { phone: "0911646359", telegram: "@Yenusabr", address: "Bole Medhanialem, L'Amir Building, 2nd Floor" },
+                created_at: Date.now() - 86400000 * 2
+            },
+            {
+                id: 102,
+                title: "Apple MacBook Pro 14' M3 Pro",
+                price: "145,000",
+                status: "available",
+                category: "premium",
+                images: ["https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80"],
+                specs: {
+                    "Processor": "Apple M3 Pro (11-Core CPU, 14-Core GPU)",
+                    "RAM": "18GB Unified Memory",
+                    "Storage": "512GB SSD Storage",
+                    "Screen Size": "14.2' Liquid Retina XDR 120Hz",
+                    "Graphics": "Integrated 14-Core GPU",
+                    "Color": "Space Black",
+                    "Weight": "1.61 kg",
+                    "Battery Life": "Up to 18 Hours"
+                },
+                contact: { phone: "0911646359", telegram: "@Yenusabr", address: "Bole Medhanialem, L'Amir Building, 2nd Floor" },
+                created_at: Date.now() - 86400000
+            },
+            {
+                id: 103,
+                title: "Lenovo ThinkPad X1 Carbon Gen 11",
+                price: "92,000",
+                status: "sold",
+                category: "business",
+                images: ["https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=600&q=80"],
+                specs: {
+                    "Processor": "Intel Core i7-1360P",
+                    "RAM": "16GB LPDDR5",
+                    "Storage": "512GB PCIe Gen4 SSD",
+                    "Screen Size": "14.0' WUXGA IPS Touch",
+                    "Graphics": "Intel Iris Xe Graphics",
+                    "Weight": "1.12 kg Lightweight",
+                    "Warranty": "3 Years ThinkPad"
+                },
+                contact: { phone: "0911646359", telegram: "@Yenusabr", address: "Bole Medhanialem, L'Amir Building, 2nd Floor" },
+                created_at: Date.now() - 86400000 * 5
+            }
+        ];
+
+        // Sample Context-Aware Value Suggestions for Custom Specs
+        const SPEC_VALUE_PRESETS = {
+            "Battery Life": ["Up to 8 Hours", "Up to 12 Hours", "Up to 18 Hours", "4-Cell 56Wh", "6-Cell 90Wh"],
+            "Display Type": ["IPS Anti-Glare", "OLED 120Hz", "Mini-LED 165Hz", "AMOLED Touchscreen"],
+            "Keyboard Backlight": ["White LED Backlit", "Per-Key RGB", "4-Zone RGB", "Non-Backlit"],
+            "Weight": ["1.12 kg Ultra-Light", "1.4 kg Compact", "1.8 kg Standard", "2.3 kg Gaming Heavy"],
+            "Resolution": ["1920x1080 (FHD)", "2560x1600 (QHD+)", "3840x2160 (4K UHD)", "2880x1800 (OLED)"],
+            "Touch Screen": ["Yes - Multi-Touch", "No - Matte Anti-Glare"],
+            "Warranty": ["6 Months Store Warranty", "1 Year Local Warranty", "2 Years Official Warranty"],
+            "Operating System": ["Windows 11 Pro", "Windows 11 Home", "macOS Sonoma", "FreeDOS"],
+            "Color": ["Space Grey", "Silver Unibody", "Off Black", "Dark Metallic Slate"]
+        };
+
+        const SAMPLE_ORDERS = [
+            { id: 'ORD-9081', customer: 'Abebe Tadesse', telegram: '@abebe_t', item: "ASUS ROG Strix G16", price: "115,000 ETB", status: "Pending", date: "10 mins ago" },
+            { id: 'ORD-9079', customer: 'Selamawit B.', telegram: '@selam_b', item: "Apple MacBook Pro 14'", price: "145,000 ETB", status: "Confirmed", date: "2 hours ago" },
+            { id: 'ORD-9075', customer: 'Yared Kebede', telegram: '@yared_k', item: "Lenovo ThinkPad X1", price: "92,000 ETB", status: "Delivered", date: "Yesterday" }
+        ];
+
+        /* ==========================================================================
+           INITIALIZATION & TELEGRAM WEBAPP INTEGRATION
+           ========================================================================== */
+        window.onload = function() {
+            initThemeDetection();
+
+            // Load products from LocalStorage or use default samples
+            loadProductsFromStorage();
+            renderDashboard();
+            renderOrders();
+            updateLivePreview();
+        };
+
+        function initThemeDetection() {
+            const hasTelegram = window.Telegram && window.Telegram.WebApp;
+            
+            if (hasTelegram) {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                
+                // Automatically apply theme based on Telegram's active colorScheme ('dark' or 'light')
+                const isDark = tg.colorScheme === 'dark';
+                applyTheme(isDark);
+
+                // Live event listener for when the user changes theme in Telegram settings
+                tg.onEvent('themeChanged', function() {
+                    applyTheme(tg.colorScheme === 'dark');
+                });
+            } else {
+                // Fallback for web browsers: check localStorage or system OS dark mode preference
+                const savedTheme = localStorage.getItem('nur_tech_theme_mode');
+                if (savedTheme) {
+                    applyTheme(savedTheme === 'dark');
+                } else {
+                    const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    applyTheme(systemPrefersDark);
+                }
+
+                // Listen for OS system theme updates when outside Telegram
+                if (window.matchMedia) {
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                        if (!localStorage.getItem('nur_tech_theme_mode')) {
+                            applyTheme(e.matches);
+                        }
+                    });
+                }
+            }
+        }
+
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateThemeIcon(isDark);
+        }
+
+        /* ==========================================================================
+           THEME TOGGLE
+           ========================================================================== */
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('nur_tech_theme_mode', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+            showToast(isDark ? "Switched to Dark Mode 🌙" : "Switched to Light Mode ☀️");
+        }
+
+        function updateThemeIcon(isDark) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                if (isDark) {
+                    icon.className = 'fa-solid fa-sun text-amber-400';
+                } else {
+                    icon.className = 'fa-solid fa-moon text-slate-600';
+                }
+            }
+        }
+
+        function loadProductsFromStorage() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    products = JSON.parse(saved);
+                } catch(e) {
+                    products = [...SAMPLE_PRODUCTS];
+                }
+            } else {
+                products = [...SAMPLE_PRODUCTS];
+                saveProductsToStorage();
+            }
+        }
+
+        function saveProductsToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+        }
+
+        /* ==========================================================================
+           THEME TOGGLE
+           ========================================================================== */
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            updateThemeIcon(isDark);
+            showToast(isDark ? "Switched to Dark Mode 🌙" : "Switched to Light Mode ☀️");
+        }
+
+        function updateThemeIcon(isDark) {
+            const icon = document.getElementById('themeIcon');
+            if (isDark) {
+                icon.className = 'fa-solid fa-sun text-amber-400';
+            } else {
+                icon.className = 'fa-solid fa-moon text-slate-600';
+            }
+        }
+
+        /* ==========================================================================
+           VIEW ROUTER (NAVIGATION)
+           ========================================================================== */
+        function switchView(viewName) {
+            // Hide all sections
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+            
+            // Unhighlight bottom nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active', 'text-blue-600', 'dark:text-blue-400');
+                btn.classList.add('text-slate-400');
+            });
+
+            // Show selected view
+            if (viewName === 'dashboard') {
+                document.getElementById('viewDashboard').classList.remove('hidden');
+                document.getElementById('navDashboard').classList.add('active', 'text-blue-600', 'dark:text-blue-400');
+                renderDashboard();
+            } else if (viewName === 'form') {
+                document.getElementById('viewForm').classList.remove('hidden');
+                document.getElementById('navForm').classList.add('active', 'text-blue-600', 'dark:text-blue-400');
+            } else if (viewName === 'detail') {
+                document.getElementById('viewDetail').classList.remove('hidden');
+            } else if (viewName === 'templates') {
+                document.getElementById('viewTemplates').classList.remove('hidden');
+                document.getElementById('navTemplates').classList.add('active', 'text-blue-600', 'dark:text-blue-400');
+            } else if (viewName === 'orders') {
+                document.getElementById('viewOrders').classList.remove('hidden');
+                document.getElementById('navOrders').classList.add('active', 'text-blue-600', 'dark:text-blue-400');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* ==========================================================================
+           VIEW 1: DASHBOARD RENDERING & FILTERS
+           ========================================================================== */
+        function renderDashboard() {
+            const listEl = document.getElementById('productList');
+            listEl.innerHTML = '';
+
+            // Calculate metrics
+            const totalCount = products.length;
+            const availCount = products.filter(p => p.status === 'available').length;
+            const soldCount = products.filter(p => p.status === 'sold').length;
+
+            document.getElementById('statTotal').innerText = totalCount;
+            document.getElementById('statAvailable').innerText = availCount;
+            document.getElementById('statSold').innerText = soldCount;
+            document.getElementById('statOrders').innerText = SAMPLE_ORDERS.length;
+
+            // Apply filters
+            let filtered = products.filter(p => {
+                const matchesSearch = searchQuery === '' || 
+                    p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (p.specs.Processor && p.specs.Processor.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (p.specs.Graphics && p.specs.Graphics.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                const matchesCat = activeCategoryFilter === 'all' || p.category === activeCategoryFilter;
+                const matchesStatus = activeStatusFilter === 'all' || p.status === activeStatusFilter;
+
+                return matchesSearch && matchesCat && matchesStatus;
+            });
+
+            document.getElementById('resultCount').innerText = `Showing ${filtered.length} products`;
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                    <div class="glass-panel rounded-2xl p-8 text-center space-y-3 border border-dashed border-slate-300 dark:border-slate-700">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center mx-auto text-xl">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-700 dark:text-slate-200">No products found</h3>
+                        <p class="text-xs text-slate-400">Try adjusting your search query or dynamic filters.</p>
+                        <button onclick="resetFilters()" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold">Clear Filters</button>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(prod => {
+                const card = document.createElement('div');
+                card.className = "glass-panel rounded-xl border p-3 flex gap-3 relative hover:shadow-md transition-all group";
+                
+                const mainImg = (prod.images && prod.images.length > 0) ? prod.images[0] : 'https://placehold.co/200x200/22c55e/ffffff?text=Laptop';
+                const isAvailable = prod.status === 'available';
+
+                card.innerHTML = `
+                    <div class="w-24 h-24 rounded-lg bg-slate-100 dark:bg-slate-800 shrink-0 overflow-hidden relative border border-slate-200 dark:border-slate-700">
+                        <img src="${mainImg}" alt="${prod.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <span class="absolute top-1 left-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isAvailable ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'} uppercase tracking-wider">
+                            ${isAvailable ? 'In Stock' : 'Sold'}
+                        </span>
+                    </div>
+
+                    <div class="flex-1 flex flex-col justify-between min-w-0">
+                        <div>
+                            <div class="flex items-start justify-between gap-1">
+                                <h3 onclick="viewProductDetail(${prod.id})" class="font-bold text-xs truncate text-slate-800 dark:text-slate-100 cursor-pointer hover:text-blue-500">${prod.title}</h3>
+                            </div>
+                            <p class="text-xs font-extrabold text-blue-600 dark:text-blue-400 mt-0.5">${prod.price} <span class="text-[10px] font-normal">ETB</span></p>
+
+                            <div class="flex flex-wrap gap-1 mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                                ${prod.specs.Processor ? `<span class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">💻 ${prod.specs.Processor.split(' ')[0]} ${prod.specs.Processor.split(' ')[1] || ''}</span>` : ''}
+                                ${prod.specs.RAM ? `<span class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">🧠 ${prod.specs.RAM}</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-1">
+                            <button onclick="toggleProductStatus(${prod.id})" class="text-[10px] font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-1">
+                                <i class="fa-solid fa-arrows-rotate"></i> Mark ${isAvailable ? 'Sold' : 'Available'}
+                            </button>
+                            
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="copyTelegramPost(${prod.id})" title="Copy Post text" class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                                <button onclick="editProduct(${prod.id})" title="Edit" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button onclick="confirmDeleteProduct(${prod.id})" title="Delete" class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                listEl.appendChild(card);
+            });
+        }
+
+        function handleSearch() {
+            const input = document.getElementById('searchInput');
+            searchQuery = input.value.trim();
+            document.getElementById('clearSearchBtn').classList.toggle('hidden', searchQuery === '');
+            renderDashboard();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            searchQuery = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            renderDashboard();
+        }
+
+        function setCategoryFilter(cat) {
+            activeCategoryFilter = cat;
+            document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
+                btn.classList.add('glass-panel', 'text-slate-600', 'dark:text-slate-300');
+            });
+            event.target.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+            event.target.classList.remove('glass-panel');
+            renderDashboard();
+        }
+
+        function setStatusFilter(status) {
+            activeStatusFilter = (activeStatusFilter === status) ? 'all' : status;
+            renderDashboard();
+        }
+
+        function resetFilters() {
+            searchQuery = '';
+            activeCategoryFilter = 'all';
+            activeStatusFilter = 'all';
+            document.getElementById('searchInput').value = '';
+            renderDashboard();
+        }
+
+        /* ==========================================================================
+           VIEW 2: FORM HANDLING & IMAGE UPLOAD
+           ========================================================================== */
+        function handleImageUpload(e) {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+
+            if (uploadedImages.length + files.length > 5) {
+                showToast("Maximum 5 images allowed!", true);
+                return;
+            }
+
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    uploadedImages.push(evt.target.result);
+                    renderImagePreviews();
+                    updateLivePreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderImagePreviews() {
+            const container = document.getElementById('imagePreviewContainer');
+            container.innerHTML = '';
+
+            uploadedImages.forEach((imgSrc, idx) => {
+                const div = document.createElement('div');
+                div.className = "relative w-16 h-16 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700 shrink-0 group";
+                div.innerHTML = `
+                    <img src="${imgSrc}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removeImage(${idx})" class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px]">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function removeImage(index) {
+            uploadedImages.splice(index, 1);
+            renderImagePreviews();
+            updateLivePreview();
+        }
+
+        function formatPriceInput(input) {
+            let val = input.value.replace(/,/g, '').replace(/[^0-9]/g, '');
+            if (val) {
+                input.value = parseInt(val, 10).toLocaleString('en-US');
+            } else {
+                input.value = '';
+            }
+        }
+
+        /* CUSTOM SPECIFICATIONS MODAL LOGIC */
+        function openAddSpecModal() {
+            document.getElementById('modalSpecKey').value = '';
+            document.getElementById('modalSpecValue').value = '';
+            document.getElementById('addSpecModal').classList.remove('hidden');
+        }
+
+        function closeAddSpecModal() {
+            document.getElementById('addSpecModal').classList.add('hidden');
+        }
+
+        function handleSpecKeyChange(key) {
+            const datalist = document.getElementById('specValueSuggestions');
+            datalist.innerHTML = '';
+
+            if (SPEC_VALUE_PRESETS[key]) {
+                SPEC_VALUE_PRESETS[key].forEach(val => {
+                    const opt = document.createElement('option');
+                    opt.value = val;
+                    datalist.appendChild(opt);
+                });
+            }
+        }
+
+        function confirmAddSpec() {
+            const key = document.getElementById('modalSpecKey').value.trim();
+            const val = document.getElementById('modalSpecValue').value.trim();
+
+            if (!key || !val) {
+                showToast("Please enter both spec name and value", true);
+                return;
+            }
+
+            customSpecsList.push({ key, val });
+            renderCustomSpecsTable();
+            closeAddSpecModal();
+            updateLivePreview();
+            showToast("Specification added!");
+        }
+
+        function removeCustomSpec(index) {
+            customSpecsList.splice(index, 1);
+            renderCustomSpecsTable();
+            updateLivePreview();
+        }
+
+        function renderCustomSpecsTable() {
+            const tbody = document.getElementById('customSpecsTableBody');
+            tbody.innerHTML = '';
+
+            if (customSpecsList.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="noCustomSpecsRow">
+                        <td colspan="3" class="p-3 text-center text-slate-400 italic text-[11px]">No custom specs added yet. Tap "+ Custom Spec" above.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            customSpecsList.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-2 font-medium text-slate-700 dark:text-slate-300">⚙️ ${item.key}</td>
+                    <td class="p-2 text-slate-600 dark:text-slate-400">${item.val}</td>
+                    <td class="p-2 text-center">
+                        <button type="button" onclick="removeCustomSpec(${idx})" class="text-rose-500 hover:text-rose-700 text-xs">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        /* LIVE TELEGRAM CHANNEL PREVIEW GENERATOR */
+        function updateLivePreview() {
+            const title = document.getElementById('inputTitle').value || 'Laptop Title Here';
+            const price = document.getElementById('inputPrice').value || '0';
+            const isAvail = document.getElementById('inputStatusToggle').checked;
+            
+            // Collect Specs
+            const proc = document.getElementById('specProcessor').value;
+            const ram = document.getElementById('specRam').value;
+            const storage = document.getElementById('specStorage').value;
+            const screen = document.getElementById('specScreen').value;
+            const gpu = document.getElementById('specGraphics').value;
+
+            const previewEl = document.getElementById('livePreviewCard');
+            const img = uploadedImages.length > 0 ? uploadedImages[0] : 'https://placehold.co/400x220/1e293b/ffffff?text=Product+Image+Preview';
+
+            let specsHtml = '';
+            if (proc) specsHtml += `<div>💻 <b>CPU:</b> ${proc}</div>`;
+            if (ram) specsHtml += `<div>🧠 <b>RAM:</b> ${ram}</div>`;
+            if (storage) specsHtml += `<div>💾 <b>Storage:</b> ${storage}</div>`;
+            if (screen) specsHtml += `<div>🖥️ <b>Display:</b> ${screen}</div>`;
+            if (gpu) specsHtml += `<div>🎮 <b>GPU:</b> ${gpu}</div>`;
+
+            customSpecsList.forEach(s => {
+                specsHtml += `<div>⚙️ <b>${s.key}:</b> ${s.val}</div>`;
+            });
+
+            previewEl.innerHTML = `
+                <div class="rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm text-xs space-y-2 p-2.5">
+                    <img src="${img}" class="w-full h-36 object-cover rounded-lg">
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="font-extrabold text-sm text-slate-900 dark:text-slate-100">${title}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isAvail ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                ${isAvail ? '🟢 Available' : '🔴 Sold'}
+                            </span>
+                        </div>
+                        <p class="font-bold text-blue-600 dark:text-blue-400 text-sm">💰 Price: ${price} ETB</p>
+                        
+                        <div class="py-1 border-y border-slate-100 dark:border-slate-800 space-y-0.5 text-slate-600 dark:text-slate-300">
+                            ${specsHtml || '<div class="italic text-slate-400">Specify specs above to see live formatting...</div>'}
+                        </div>
+
+                        <div class="text-[10px] text-slate-500 pt-1 space-y-0.5">
+                            <div>📞 Call: <b>0911646359</b></div>
+                            <div>✈️ DM: <b>@Yenusabr</b></div>
+                            <div>📍 Location: Bole Medhanialem, L'Amir Bldg</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* SAVE / SUBMIT PRODUCT FORM */
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('editProductId').value;
+            const title = document.getElementById('inputTitle').value.trim();
+            const price = document.getElementById('inputPrice').value.trim();
+            const category = document.getElementById('inputCategory').value;
+            const isAvail = document.getElementById('inputStatusToggle').checked;
+
+            if (uploadedImages.length === 0) {
+                uploadedImages.push('https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=600&q=80');
+            }
+
+            // Specs Object
+            const specsObj = {};
+            if (document.getElementById('specProcessor').value) specsObj['Processor'] = document.getElementById('specProcessor').value;
+            if (document.getElementById('specRam').value) specsObj['RAM'] = document.getElementById('specRam').value;
+            if (document.getElementById('specStorage').value) specsObj['Storage'] = document.getElementById('specStorage').value;
+            if (document.getElementById('specScreen').value) specsObj['Screen Size'] = document.getElementById('specScreen').value;
+            if (document.getElementById('specGraphics').value) specsObj['Graphics'] = document.getElementById('specGraphics').value;
+
+            customSpecsList.forEach(item => {
+                specsObj[item.key] = item.val;
+            });
+
+            const contactObj = {
+                phone: document.getElementById('contactPhone').value,
+                telegram: document.getElementById('contactTelegram').value,
+                address: document.getElementById('contactAddress').value
+            };
+
+            if (editId) {
+                // Update Existing
+                const index = products.findIndex(p => p.id == editId);
+                if (index !== -1) {
+                    products[index] = {
+                        ...products[index],
+                        title,
+                        price,
+                        category,
+                        status: isAvail ? 'available' : 'sold',
+                        images: uploadedImages,
+                        specs: specsObj,
+                        contact: contactObj,
+                        updated_at: Date.now()
+                    };
+                    showToast("Product updated successfully! ✏️");
+                }
+            } else {
+                // Create New
+                const newProduct = {
+                    id: Date.now(),
+                    title,
+                    price,
+                    category,
+                    status: isAvail ? 'available' : 'sold',
+                    images: uploadedImages,
+                    specs: specsObj,
+                    contact: contactObj,
+                    created_at: Date.now()
+                };
+                products.unshift(newProduct);
+                showToast("New Product listed successfully! 📦");
+            }
+
+            saveProductsToStorage();
+            resetForm();
+            switchView('dashboard');
+        }
+
+        function editProduct(id) {
+            const prod = products.find(p => p.id == id);
+            if (!prod) return;
+
+            document.getElementById('editProductId').value = prod.id;
+            document.getElementById('formHeading').innerText = "Edit Product";
+            document.getElementById('submitBtnText').innerText = "Update Product";
+
+            document.getElementById('inputTitle').value = prod.title;
+            document.getElementById('inputPrice').value = prod.price;
+            document.getElementById('inputCategory').value = prod.category;
+            document.getElementById('inputStatusToggle').checked = prod.status === 'available';
+
+            // Pre-fill images
+            uploadedImages = [...prod.images];
+            renderImagePreviews();
+
+            // Specs
+            document.getElementById('specProcessor').value = prod.specs['Processor'] || '';
+            document.getElementById('specRam').value = prod.specs['RAM'] || '';
+            document.getElementById('specStorage').value = prod.specs['Storage'] || '';
+            document.getElementById('specScreen').value = prod.specs['Screen Size'] || '';
+            document.getElementById('specGraphics').value = prod.specs['Graphics'] || '';
+
+            // Custom Specs
+            customSpecsList = [];
+            const standardKeys = ['Processor', 'RAM', 'Storage', 'Screen Size', 'Graphics'];
+            Object.keys(prod.specs).forEach(k => {
+                if (!standardKeys.includes(k)) {
+                    customSpecsList.push({ key: k, val: prod.specs[k] });
+                }
+            });
+            renderCustomSpecsTable();
+
+            updateLivePreview();
+            switchView('form');
+        }
+
+        function resetForm() {
+            document.getElementById('productForm').reset();
+            document.getElementById('editProductId').value = '';
+            document.getElementById('formHeading').innerText = "Add New Product";
+            document.getElementById('submitBtnText').innerText = "Save & Publish Product";
+            uploadedImages = [];
+            customSpecsList = [];
+            renderImagePreviews();
+            renderCustomSpecsTable();
+            updateLivePreview();
+        }
+
+        function toggleProductStatus(id) {
+            const prod = products.find(p => p.id == id);
+            if (prod) {
+                prod.status = (prod.status === 'available') ? 'sold' : 'available';
+                saveProductsToStorage();
+                renderDashboard();
+                showToast(`Status updated to ${prod.status.toUpperCase()}`);
+            }
+        }
+
+        function confirmDeleteProduct(id) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').innerText = "Delete Laptop Listing?";
+            document.getElementById('confirmText').innerText = "Are you sure you want to delete this laptop from inventory?";
+            
+            modal.classList.remove('hidden');
+
+            document.getElementById('confirmOkBtn').onclick = function() {
+                products = products.filter(p => p.id != id);
+                saveProductsToStorage();
+                renderDashboard();
+                modal.classList.add('hidden');
+                showToast("Product deleted from catalog", true);
+            };
+
+            document.getElementById('confirmCancelBtn').onclick = function() {
+                modal.classList.add('hidden');
+            };
+        }
+
+        /* ==========================================================================
+           VIEW 3: PRODUCT DETAIL VIEW
+           ========================================================================== */
+        function viewProductDetail(id) {
+            const prod = products.find(p => p.id == id);
+            if (!prod) return;
+
+            const container = document.getElementById('detailContent');
+            const isAvail = prod.status === 'available';
+
+            document.getElementById('detailEditBtn').onclick = () => editProduct(prod.id);
+            document.getElementById('detailDeleteBtn').onclick = () => confirmDeleteProduct(prod.id);
+
+            let specsListHtml = '';
+            Object.keys(prod.specs).forEach(key => {
+                let icon = '⚙️';
+                if (key === 'Processor') icon = '💻';
+                if (key === 'RAM') icon = '🧠';
+                if (key === 'Storage') icon = '💾';
+                if (key === 'Screen Size') icon = '🖥️';
+                if (key === 'Graphics') icon = '🎮';
+
+                specsListHtml += `
+                    <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+                        <span class="font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">${icon} ${key}</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 text-right">${prod.specs[key]}</span>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <!-- Image Gallery Slider -->
+                    <div class="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 h-56 relative">
+                        <img id="mainGalleryImg" src="${prod.images[0]}" class="w-full h-full object-cover">
+                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${isAvail ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'} shadow">
+                            ${isAvail ? '🟢 Available' : '🔴 Sold Out'}
+                        </span>
+                    </div>
+
+                    ${prod.images.length > 1 ? `
+                        <div class="flex gap-2 overflow-x-auto no-scrollbar">
+                            ${prod.images.map((img, i) => `
+                                <img src="${img}" onclick="document.getElementById('mainGalleryImg').src='${img}'" 
+                                     class="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-slate-700 cursor-pointer hover:opacity-80 transition-opacity">
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-blue-500">${prod.category} LAPTOP</span>
+                        <h2 class="font-bold text-lg leading-snug mt-0.5">${prod.title}</h2>
+                        <div class="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">${prod.price} <span class="text-xs font-semibold">ETB</span></div>
+                    </div>
+
+                    <!-- Specs Breakdown -->
+                    <div class="glass-panel p-3.5 rounded-xl border space-y-1">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Technical Specifications</h3>
+                        ${specsListHtml}
+                    </div>
+
+                    <!-- Direct Telegram Actions -->
+                    <div class="glass-panel p-3.5 rounded-xl border space-y-2 text-xs">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Merchant Contacts</h3>
+                        <div class="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                            <span>📞 Phone:</span>
+                            <a href="tel:${prod.contact.phone}" class="font-bold text-blue-500">${prod.contact.phone}</a>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                            <span>✈️ Telegram:</span>
+                            <a href="https://t.me/${prod.contact.telegram.replace('@','')}" target="_blank" class="font-bold text-blue-500">${prod.contact.telegram}</a>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                            <span>📍 Location:</span>
+                            <span class="font-semibold text-right">${prod.contact.address}</span>
+                        </div>
+                    </div>
+
+                    <button onclick="copyTelegramPost(${prod.id})" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20">
+                        <i class="fa-solid fa-copy"></i> Copy Telegram Post Text
+                    </button>
+                </div>
+            `;
+
+            switchView('detail');
+        }
+
+        /* ==========================================================================
+           VIEW 4: QUICK TEMPLATES ENGINE
+           ========================================================================== */
+        function applyTemplate(type) {
+            resetForm();
+            if (type === 'gaming') {
+                document.getElementById('inputTitle').value = "ASUS ROG Strix RTX 4070 Gaming Laptop";
+                document.getElementById('inputPrice').value = "125,000";
+                document.getElementById('inputCategory').value = "gaming";
+                document.getElementById('specProcessor').value = "Intel Core i9-13980HX";
+                document.getElementById('specRam').value = "32GB DDR5";
+                document.getElementById('specStorage').value = "1TB NVMe Gen4 SSD";
+                document.getElementById('specScreen').value = "16.0' QHD+ 240Hz";
+                document.getElementById('specGraphics').value = "NVIDIA RTX 4070 8GB";
+                customSpecsList = [
+                    { key: "Keyboard Backlight", val: "Per-Key RGB" },
+                    { key: "Warranty", val: "1 Year Official" }
+                ];
+            } else if (type === 'business') {
+                document.getElementById('inputTitle').value = "Dell XPS 13 Executive Ultrabook";
+                document.getElementById('inputPrice').value = "78,000";
+                document.getElementById('inputCategory').value = "business";
+                document.getElementById('specProcessor').value = "Intel Core i7-1360P";
+                document.getElementById('specRam').value = "16GB DDR5";
+                document.getElementById('specStorage').value = "512GB NVMe SSD";
+                document.getElementById('specScreen').value = "13.4' FHD+ IPS Touch";
+                document.getElementById('specGraphics').value = "Intel Iris Xe Graphics";
+                customSpecsList = [
+                    { key: "Weight", val: "1.17 kg Ultra-Light" },
+                    { key: "Battery Life", val: "Up to 12 Hours" }
+                ];
+            } else if (type === 'premium') {
+                document.getElementById('inputTitle').value = "Apple MacBook Pro 16' M3 Max";
+                document.getElementById('inputPrice').value = "210,000";
+                document.getElementById('inputCategory').value = "premium";
+                document.getElementById('specProcessor').value = "Apple M3 Max (16-Core)";
+                document.getElementById('specRam').value = "36GB Unified Memory";
+                document.getElementById('specStorage').value = "1TB SSD Storage";
+                document.getElementById('specScreen').value = "16.2' Liquid Retina XDR 120Hz";
+                document.getElementById('specGraphics').value = "Integrated 40-Core GPU";
+                customSpecsList = [
+                    { key: "Color", val: "Space Black" },
+                    { key: "Warranty", val: "1 Year Apple Warranty" }
+                ];
+            }
+
+            renderCustomSpecsTable();
+            updateLivePreview();
+            switchView('form');
+            showToast(`Applied ${type.toUpperCase()} Template! ⚡`);
+        }
+
+        /* ==========================================================================
+           VIEW 5: ORDERS VIEW
+           ========================================================================== */
+        function renderOrders() {
+            const list = document.getElementById('ordersList');
+            list.innerHTML = '';
+
+            SAMPLE_ORDERS.forEach(ord => {
+                const card = document.createElement('div');
+                card.className = "glass-panel p-3.5 rounded-xl border flex flex-col space-y-2";
+                
+                let statusColor = "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300";
+                if (ord.status === 'Confirmed') statusColor = "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300";
+                if (ord.status === 'Delivered') statusColor = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300";
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-slate-400">${ord.id} • ${ord.date}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColor}">${ord.status}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <div>
+                            <h4 class="font-bold text-xs">${ord.item}</h4>
+                            <p class="text-[11px] text-slate-500">Buyer: ${ord.customer} (<a href="https://t.me/${ord.telegram.replace('@','')}" class="text-blue-500 font-semibold">${ord.telegram}</a>)</p>
+                        </div>
+                        <span class="font-extrabold text-xs text-blue-600 dark:text-blue-400">${ord.price}</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                        <a href="https://t.me/${ord.telegram.replace('@','')}" target="_blank" class="flex-1 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold text-[11px] text-center">
+                            <i class="fa-paper-plane text-xs mr-1"></i> Contact Buyer
+                        </a>
+                        <button onclick="showToast('Order status updated!')" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-semibold">
+                            Update Status
+                        </button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        /* COPY TELEGRAM FORMATTED POST TO CLIPBOARD */
+        function copyTelegramPost(id) {
+            const prod = products.find(p => p.id == id);
+            if (!prod) return;
+
+            let specsFormatted = '';
+            Object.keys(prod.specs).forEach(k => {
+                specsFormatted += `• ${k}: ${prod.specs[k]}\n`;
+            });
+
+            const text = 
+`💻 *${prod.title}*
+💰 *Price:* ${prod.price} ETB
+🟢 *Status:* ${prod.status === 'available' ? 'Available' : 'Sold Out'}
+
+📋 *Specifications:*
+${specsFormatted}
+📞 *Phone:* ${prod.contact.phone}
+✈️ *Telegram:* ${prod.contact.telegram}
+📍 *Address:* ${prod.contact.address}
+
+#NurTechnologies #Laptops #Ethiopia`;
+
+            copyToClipboard(text);
+            showToast("Copied Telegram post text to clipboard! ✈️");
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+        }
+
+        /* TOAST UTILITY */
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msgEl = document.getElementById('toastMsg');
+
+            msgEl.innerText = msg;
+            if (isError) {
+                icon.className = 'fa-solid fa-circle-exclamation text-rose-500';
+            } else {
+                icon.className = 'fa-solid fa-circle-check text-emerald-400';
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
