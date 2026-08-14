@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Nur Tech - Telegram Product WebApp</title>
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -13,8 +15,9 @@
     <!-- Google Font Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -100,6 +103,7 @@
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -107,13 +111,27 @@
 
         /* Animated Bottom Sheet Slide-Up */
         @keyframes slideUpSheet {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         @keyframes popInModal {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .animate-sheet {
@@ -126,30 +144,48 @@
 
         /* Animated Toast Notification */
         @keyframes slideUpToast {
-            from { transform: translateY(100%) translateX(-50%); opacity: 0; }
-            to { transform: translateY(0) translateX(-50%); opacity: 1; }
+            from {
+                transform: translateY(100%) translateX(-50%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) translateX(-50%);
+                opacity: 1;
+            }
         }
+
         .animate-toast {
             animation: slideUpToast 0.3s ease forwards;
         }
 
         /* Eye-catching pulse aura for the Add button */
         @keyframes addGlow {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
-            50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+            }
         }
+
         .add-btn-glow {
             animation: addGlow 2.5s infinite;
         }
     </style>
 </head>
+
 <body class="min-h-screen pb-24 select-none antialiased">
     <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col relative">
-        
+
         <!-- Top App Header -->
         <header class="sticky top-0 z-30 glass-panel border-b px-4 py-3 flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20">
+                <div
+                    class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20">
                     <i class="fa-solid fa-laptop text-base"></i>
                 </div>
                 <div>
@@ -162,7 +198,8 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button id="themeToggleBtn" onclick="toggleTheme()" class="w-9 h-9 rounded-xl glass-panel border flex items-center justify-center text-slate-600 dark:text-slate-300 hover:scale-105 active:scale-95 transition-all">
+                <button id="themeToggleBtn" onclick="toggleTheme()"
+                    class="w-9 h-9 rounded-xl glass-panel border flex items-center justify-center text-slate-600 dark:text-slate-300 hover:scale-105 active:scale-95 transition-all">
                     <i id="themeIcon" class="fa-solid fa-moon"></i>
                 </button>
             </div>
@@ -170,47 +207,63 @@
 
         <!-- Main Content View Area -->
         <main class="flex-1 p-4 space-y-4">
-            
+
             <!-- VIEW 1: PRODUCT DASHBOARD -->
             <section id="viewDashboard" class="view-section space-y-4">
-                
+
                 <!-- Search & Filters -->
                 <div class="space-y-2.5">
                     <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search laptops (Dell, M3 Pro, i7...)" 
-                               class="w-full pl-10 pr-9 py-2.5 rounded-xl border bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                        <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <i
+                            class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="searchInput" oninput="handleSearch()"
+                            placeholder="Search laptops (Dell, M3 Pro, i7...)"
+                            class="w-full pl-10 pr-9 py-2.5 rounded-xl border bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        <button id="clearSearchBtn" onclick="clearSearch()"
+                            class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                             <i class="fa-solid fa-xmark text-sm"></i>
                         </button>
                     </div>
 
                     <!-- Filter Tags -->
                     <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 text-xs font-medium">
-                        <button onclick="setCategoryFilter('all')" class="cat-filter-btn active px-3 py-1.5 rounded-lg border bg-blue-600 text-white border-blue-600 whitespace-nowrap shadow-sm">All</button>
-                        <button onclick="setCategoryFilter('gaming')" class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">🎮 Gaming</button>
-                        <button onclick="setCategoryFilter('business')" class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">💼 Business</button>
-                        <button onclick="setCategoryFilter('premium')" class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">👑 Premium</button>
-                        <button onclick="setStatusFilter('available')" class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">🟢 Available</button>
+                        <button onclick="setCategoryFilter('all')"
+                            class="cat-filter-btn active px-3 py-1.5 rounded-lg border bg-blue-600 text-white border-blue-600 whitespace-nowrap shadow-sm">All</button>
+                        <button onclick="setCategoryFilter('gaming')"
+                            class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">🎮
+                            Gaming</button>
+                        <button onclick="setCategoryFilter('business')"
+                            class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">💼
+                            Business</button>
+                        <button onclick="setCategoryFilter('premium')"
+                            class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">👑
+                            Premium</button>
+                        <button onclick="setStatusFilter('available')"
+                            class="cat-filter-btn px-3 py-1.5 rounded-lg border glass-panel border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">🟢
+                            Available</button>
                     </div>
                 </div>
 
                 <!-- Stats Summary Row -->
                 <div class="grid grid-cols-4 gap-2">
                     <div class="glass-panel p-2.5 rounded-xl text-center border">
-                        <span class="block text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Total</span>
+                        <span
+                            class="block text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Total</span>
                         <span id="statTotal" class="text-base font-bold text-slate-800 dark:text-slate-100">0</span>
                     </div>
                     <div class="glass-panel p-2.5 rounded-xl text-center border">
-                        <span class="block text-[10px] uppercase font-semibold text-emerald-500 tracking-wider">In Stock</span>
-                        <span id="statAvailable" class="text-base font-bold text-emerald-600 dark:text-emerald-400">0</span>
+                        <span class="block text-[10px] uppercase font-semibold text-emerald-500 tracking-wider">In
+                            Stock</span>
+                        <span id="statAvailable"
+                            class="text-base font-bold text-emerald-600 dark:text-emerald-400">0</span>
                     </div>
                     <div class="glass-panel p-2.5 rounded-xl text-center border">
                         <span class="block text-[10px] uppercase font-semibold text-rose-500 tracking-wider">Sold</span>
                         <span id="statSold" class="text-base font-bold text-rose-600 dark:text-rose-400">0</span>
                     </div>
                     <div class="glass-panel p-2.5 rounded-xl text-center border">
-                        <span class="block text-[10px] uppercase font-semibold text-blue-500 tracking-wider">Orders</span>
+                        <span
+                            class="block text-[10px] uppercase font-semibold text-blue-500 tracking-wider">Orders</span>
                         <span id="statOrders" class="text-base font-bold text-blue-600 dark:text-blue-400">0</span>
                     </div>
                 </div>
@@ -231,7 +284,8 @@
             <section id="viewForm" class="view-section hidden space-y-4">
                 <div class="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
                     <div class="flex items-center gap-2">
-                        <button onclick="switchView('dashboard')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm p-1">
+                        <button onclick="switchView('dashboard')"
+                            class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm p-1">
                             <i class="fa-solid fa-arrow-left"></i>
                         </button>
                         <h2 id="formHeading" class="font-bold text-base">Add New Product</h2>
@@ -250,13 +304,15 @@
                             Product Images (Max 5) <span class="text-rose-500">*</span>
                         </label>
                         <div id="dropZone" onclick="document.getElementById('imageFileInput').click()"
-                             class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 text-center cursor-pointer hover:border-blue-500 transition-colors glass-panel bg-slate-50/50 dark:bg-slate-800/30">
+                            class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 text-center cursor-pointer hover:border-blue-500 transition-colors glass-panel bg-slate-50/50 dark:bg-slate-800/30">
                             <i class="fa-solid fa-cloud-arrow-up text-2xl text-blue-500 mb-1"></i>
-                            <p class="text-xs font-medium text-slate-600 dark:text-slate-300">Tap to upload or drop laptop photos</p>
+                            <p class="text-xs font-medium text-slate-600 dark:text-slate-300">Tap to upload or drop
+                                laptop photos</p>
                             <p class="text-[10px] text-slate-400 mt-0.5">PNG, JPG, WEBP up to 5MB each</p>
-                            <input type="file" id="imageFileInput" accept="image/*" multiple onchange="handleImageUpload(event)" class="hidden">
+                            <input type="file" id="imageFileInput" accept="image/*" multiple
+                                onchange="handleImageUpload(event)" class="hidden">
                         </div>
-                        
+
                         <!-- Image Previews Container -->
                         <div id="imagePreviewContainer" class="flex gap-2 overflow-x-auto no-scrollbar py-1">
                             <!-- Dynamically added image thumbnails -->
@@ -268,26 +324,30 @@
                         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Basic Information</h3>
 
                         <div>
-                            <label class="block text-xs font-medium mb-1">Product Title <span class="text-rose-500">*</span></label>
-                            <input type="text" id="inputTitle" required placeholder="e.g. ASUS ROG Strix G16 Core i9 13th Gen"
-                                   oninput="updateLivePreview()"
-                                   class="w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <label class="block text-xs font-medium mb-1">Product Title <span
+                                    class="text-rose-500">*</span></label>
+                            <input type="text" id="inputTitle" required
+                                placeholder="e.g. ASUS ROG Strix G16 Core i9 13th Gen" oninput="updateLivePreview()"
+                                class="w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-medium mb-1">Price (ETB) <span class="text-rose-500">*</span></label>
+                                <label class="block text-xs font-medium mb-1">Price (ETB) <span
+                                        class="text-rose-500">*</span></label>
                                 <div class="relative">
                                     <input type="text" id="inputPrice" required placeholder="85,000"
-                                           oninput="formatPriceInput(this); updateLivePreview();"
-                                           class="w-full pl-3 pr-10 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold">
-                                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">ETB</span>
+                                        oninput="formatPriceInput(this); updateLivePreview();"
+                                        class="w-full pl-3 pr-10 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold">
+                                    <span
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">ETB</span>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium mb-1">Category <span class="text-rose-500">*</span></label>
+                                <label class="block text-xs font-medium mb-1">Category <span
+                                        class="text-rose-500">*</span></label>
                                 <select id="inputCategory" onchange="updateLivePreview()"
-                                        class="w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    class="w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                     <option value="gaming">🎮 Gaming</option>
                                     <option value="business">💼 Business</option>
                                     <option value="premium">👑 Premium</option>
@@ -297,11 +357,16 @@
                         </div>
 
                         <div class="flex items-center justify-between pt-1">
-                            <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Availability Status</span>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Availability
+                                Status</span>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="inputStatusToggle" checked onchange="updateLivePreview()" class="sr-only peer">
-                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-500"></div>
-                                <span id="statusToggleLabel" class="ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Available</span>
+                                <input type="checkbox" id="inputStatusToggle" checked onchange="updateLivePreview()"
+                                    class="sr-only peer">
+                                <div
+                                    class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-500">
+                                </div>
+                                <span id="statusToggleLabel"
+                                    class="ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Available</span>
                             </label>
                         </div>
                     </div>
@@ -310,7 +375,8 @@
                     <div class="glass-panel p-3.5 rounded-xl border space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Specifications</h3>
-                            <button type="button" onclick="openAddSpecModal()" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                            <button type="button" onclick="openAddSpecModal()"
+                                class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
                                 <i class="fa-solid fa-plus"></i> Custom Spec
                             </button>
                         </div>
@@ -318,11 +384,13 @@
                         <!-- Mandatory / Default Laptop Specs -->
                         <div class="space-y-2.5 text-xs">
                             <div>
-                                <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                <label
+                                    class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
                                     💻 Processor
                                 </label>
-                                <input type="text" id="specProcessor" list="processorOptions" placeholder="e.g. Intel Core i7-13700H" oninput="updateLivePreview()"
-                                       class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <input type="text" id="specProcessor" list="processorOptions"
+                                    placeholder="e.g. Intel Core i7-13700H" oninput="updateLivePreview()"
+                                    class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <datalist id="processorOptions">
                                     <option value="Intel Core i5 12th Gen"></option>
                                     <option value="Intel Core i7 13th Gen"></option>
@@ -336,11 +404,13 @@
 
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                    <label
+                                        class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
                                         🧠 RAM
                                     </label>
-                                    <input type="text" id="specRam" list="ramOptions" placeholder="e.g. 16GB DDR5 4800MHz" oninput="updateLivePreview()"
-                                           class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <input type="text" id="specRam" list="ramOptions"
+                                        placeholder="e.g. 16GB DDR5 4800MHz" oninput="updateLivePreview()"
+                                        class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                     <datalist id="ramOptions">
                                         <option value="8GB DDR4"></option>
                                         <option value="16GB DDR5"></option>
@@ -349,11 +419,13 @@
                                     </datalist>
                                 </div>
                                 <div>
-                                    <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                    <label
+                                        class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
                                         💾 Storage
                                     </label>
-                                    <input type="text" id="specStorage" list="storageOptions" placeholder="e.g. 1TB NVMe Gen4 SSD" oninput="updateLivePreview()"
-                                           class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <input type="text" id="specStorage" list="storageOptions"
+                                        placeholder="e.g. 1TB NVMe Gen4 SSD" oninput="updateLivePreview()"
+                                        class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                     <datalist id="storageOptions">
                                         <option value="256GB NVMe SSD"></option>
                                         <option value="512GB NVMe SSD"></option>
@@ -365,11 +437,13 @@
 
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                    <label
+                                        class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
                                         🖥️ Screen Size
                                     </label>
-                                    <input type="text" id="specScreen" list="screenOptions" placeholder="e.g. 15.6' FHD IPS 144Hz" oninput="updateLivePreview()"
-                                           class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <input type="text" id="specScreen" list="screenOptions"
+                                        placeholder="e.g. 15.6' FHD IPS 144Hz" oninput="updateLivePreview()"
+                                        class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                     <datalist id="screenOptions">
                                         <option value="13.3' Retina Display"></option>
                                         <option value="14.0' QHD 120Hz"></option>
@@ -379,11 +453,13 @@
                                     </datalist>
                                 </div>
                                 <div>
-                                    <label class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
+                                    <label
+                                        class="flex items-center gap-1.5 font-medium mb-1 text-slate-600 dark:text-slate-300">
                                         🎮 Graphics
                                     </label>
-                                    <input type="text" id="specGraphics" list="gpuOptions" placeholder="e.g. RTX 4060 8GB GDDR6" oninput="updateLivePreview()"
-                                           class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <input type="text" id="specGraphics" list="gpuOptions"
+                                        placeholder="e.g. RTX 4060 8GB GDDR6" oninput="updateLivePreview()"
+                                        class="w-full px-3 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                     <datalist id="gpuOptions">
                                         <option value="Intel Iris Xe Graphics"></option>
                                         <option value="NVIDIA RTX 3050 4GB"></option>
@@ -397,7 +473,8 @@
 
                         <!-- Dynamic Custom Specs Table Container -->
                         <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
-                            <span class="block text-[11px] font-semibold text-slate-400 mb-2">CUSTOM SPECIFICATIONS</span>
+                            <span class="block text-[11px] font-semibold text-slate-400 mb-2">CUSTOM
+                                SPECIFICATIONS</span>
                             <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold">
@@ -407,10 +484,12 @@
                                             <th class="p-2 text-center w-8">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="customSpecsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <tbody id="customSpecsTableBody"
+                                        class="divide-y divide-slate-100 dark:divide-slate-800">
                                         <!-- Dynamic custom spec rows go here -->
                                         <tr id="noCustomSpecsRow">
-                                            <td colspan="3" class="p-3 text-center text-slate-400 italic text-[11px]">No custom specs added yet. Tap "+ Custom Spec" above.</td>
+                                            <td colspan="3" class="p-3 text-center text-slate-400 italic text-[11px]">No
+                                                custom specs added yet. Tap "+ Custom Spec" above.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -425,25 +504,28 @@
                             <div>
                                 <label class="block font-medium mb-1">📞 Phone Number</label>
                                 <input type="text" id="contactPhone" value="0911646359"
-                                       class="w-full px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:outline-none">
+                                    class="w-full px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:outline-none">
                             </div>
                             <div>
                                 <label class="block font-medium mb-1">✈️ Telegram Handle</label>
                                 <input type="text" id="contactTelegram" value="@Yenusabr"
-                                       class="w-full px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:outline-none">
+                                    class="w-full px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:outline-none">
                             </div>
                             <div>
                                 <label class="block font-medium mb-1">📍 Store Location</label>
-                                <input type="text" id="contactAddress" value="Bole Medhanialem, L'Amir Building, 2nd Floor"
-                                       class="w-full px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:outline-none">
+                                <input type="text" id="contactAddress"
+                                    value="Bole Medhanialem, L'Amir Building, 2nd Floor"
+                                    class="w-full px-3 py-1.5 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:outline-none">
                             </div>
                         </div>
                     </div>
 
                     <!-- 5. Real-Time Live Preview Section -->
                     <div class="space-y-2">
-                        <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">📱 Telegram Channel Preview</span>
-                        <div class="glass-panel border rounded-xl p-3 bg-gradient-to-br from-slate-50 to-blue-50/20 dark:from-slate-900 dark:to-slate-800">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-slate-400">📱 Telegram
+                            Channel Preview</span>
+                        <div
+                            class="glass-panel border rounded-xl p-3 bg-gradient-to-br from-slate-50 to-blue-50/20 dark:from-slate-900 dark:to-slate-800">
                             <div id="livePreviewCard">
                                 <!-- Dynamic Preview rendered in real time -->
                             </div>
@@ -452,7 +534,8 @@
 
                     <!-- Form Action Submit Button -->
                     <div class="pt-2">
-                        <button type="submit" class="w-full py-3.5 rounded-xl text-white font-bold text-sm gradient-btn shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2">
+                        <button type="submit"
+                            class="w-full py-3.5 rounded-xl text-white font-bold text-sm gradient-btn shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-check-circle text-base"></i>
                             <span id="submitBtnText">Save & Publish Product</span>
                         </button>
@@ -463,14 +546,17 @@
             <!-- VIEW 3: PRODUCT DETAIL VIEW -->
             <section id="viewDetail" class="view-section hidden space-y-4">
                 <div class="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
-                    <button onclick="switchView('dashboard')" class="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1.5">
+                    <button onclick="switchView('dashboard')"
+                        class="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1.5">
                         <i class="fa-solid fa-arrow-left"></i> Back to Catalog
                     </button>
                     <div class="flex items-center gap-2">
-                        <button id="detailEditBtn" class="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 text-xs font-medium">
+                        <button id="detailEditBtn"
+                            class="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 text-xs font-medium">
                             <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
                         </button>
-                        <button id="detailDeleteBtn" class="px-2.5 py-1 rounded-lg bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-300 text-xs font-medium">
+                        <button id="detailDeleteBtn"
+                            class="px-2.5 py-1 rounded-lg bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-300 text-xs font-medium">
                             <i class="fa-solid fa-trash mr-1"></i>Delete
                         </button>
                     </div>
@@ -489,41 +575,56 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-3">
-                    <div class="glass-panel p-4 rounded-xl border flex flex-col justify-between hover:border-blue-500 transition-all">
+                    <div
+                        class="glass-panel p-4 rounded-xl border flex flex-col justify-between hover:border-blue-500 transition-all">
                         <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center text-lg font-bold shrink-0">🎮</div>
+                            <div
+                                class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center text-lg font-bold shrink-0">
+                                🎮</div>
                             <div>
                                 <h3 class="font-bold text-sm">Gaming Beast Template</h3>
-                                <p class="text-xs text-slate-400 mt-0.5">High Performance, Intel i9 / Ryzen 9, RTX 4070+, 32GB RAM, 240Hz screen</p>
+                                <p class="text-xs text-slate-400 mt-0.5">High Performance, Intel i9 / Ryzen 9, RTX
+                                    4070+, 32GB RAM, 240Hz screen</p>
                             </div>
                         </div>
-                        <button onclick="applyTemplate('gaming')" class="mt-3 w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5">
+                        <button onclick="applyTemplate('gaming')"
+                            class="mt-3 w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-bolt"></i> Use Gaming Template
                         </button>
                     </div>
 
-                    <div class="glass-panel p-4 rounded-xl border flex flex-col justify-between hover:border-blue-500 transition-all">
+                    <div
+                        class="glass-panel p-4 rounded-xl border flex flex-col justify-between hover:border-blue-500 transition-all">
                         <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-lg font-bold shrink-0">💼</div>
+                            <div
+                                class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-lg font-bold shrink-0">
+                                💼</div>
                             <div>
                                 <h3 class="font-bold text-sm">Executive Business Template</h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Ultralight, Core i7/i5, 16GB RAM, 512GB SSD, Long Battery Life</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Ultralight, Core i7/i5, 16GB RAM, 512GB SSD,
+                                    Long Battery Life</p>
                             </div>
                         </div>
-                        <button onclick="applyTemplate('business')" class="mt-3 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5">
+                        <button onclick="applyTemplate('business')"
+                            class="mt-3 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-bolt"></i> Use Business Template
                         </button>
                     </div>
 
-                    <div class="glass-panel p-4 rounded-xl border flex flex-col justify-between hover:border-blue-500 transition-all">
+                    <div
+                        class="glass-panel p-4 rounded-xl border flex flex-col justify-between hover:border-blue-500 transition-all">
                         <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-lg font-bold shrink-0">👑</div>
+                            <div
+                                class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-lg font-bold shrink-0">
+                                👑</div>
                             <div>
                                 <h3 class="font-bold text-sm">Premium Flagship Template</h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Apple MacBook Pro M3 / XPS OLED 4K, 32GB RAM, Premium Metal Body</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Apple MacBook Pro M3 / XPS OLED 4K, 32GB RAM,
+                                    Premium Metal Body</p>
                             </div>
                         </div>
-                        <button onclick="applyTemplate('premium')" class="mt-3 w-full py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5">
+                        <button onclick="applyTemplate('premium')"
+                            class="mt-3 w-full py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-bolt"></i> Use Premium Template
                         </button>
                     </div>
@@ -548,64 +649,78 @@
         </main>
 
         <!-- Modern & Eye-Catching Bottom Navigation Bar -->
-        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass-panel border-t border-slate-200/80 dark:border-slate-800/80 z-40 px-4 py-2 flex items-center justify-between shadow-2xl backdrop-blur-xl">
+        <nav
+            class="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass-panel border-t border-slate-200/80 dark:border-slate-800/80 z-40 px-4 py-2 flex items-center justify-between shadow-2xl backdrop-blur-xl">
             <!-- Catalog Button -->
-            <button onclick="switchView('dashboard')" id="navDashboard" class="nav-btn active flex-1 flex flex-col items-center py-1 text-blue-600 dark:text-blue-400 transition-all duration-200">
+            <button onclick="switchView('dashboard')" id="navDashboard"
+                class="nav-btn active flex-1 flex flex-col items-center py-1 text-blue-600 dark:text-blue-400 transition-all duration-200">
                 <i class="fa-solid fa-boxes-stacked text-lg mb-0.5"></i>
                 <span class="text-[11px] font-semibold tracking-tight">Catalog</span>
             </button>
 
             <!-- Prominent Eye-Catching "Add Item" Floating Button -->
             <div class="flex-1 flex justify-center relative -top-4">
-                <button onclick="switchView('form')" id="navForm" class="nav-btn flex flex-col items-center group focus:outline-none">
-                    <div class="w-13 h-13 w-[52px] h-[52px] rounded-full gradient-btn text-white flex items-center justify-center shadow-lg shadow-blue-500/40 border-2 border-white dark:border-slate-900 transition-transform duration-200 group-hover:scale-110 group-active:scale-95 add-btn-glow">
+                <button onclick="switchView('form')" id="navForm"
+                    class="nav-btn flex flex-col items-center group focus:outline-none">
+                    <div
+                        class="w-13 h-13 w-[52px] h-[52px] rounded-full gradient-btn text-white flex items-center justify-center shadow-lg shadow-blue-500/40 border-2 border-white dark:border-slate-900 transition-transform duration-200 group-hover:scale-110 group-active:scale-95 add-btn-glow">
                         <i class="fa-solid fa-plus text-xl font-extrabold"></i>
                     </div>
-                    <span class="text-[11px] font-extrabold text-blue-600 dark:text-blue-400 mt-1 tracking-tight">Add Item</span>
+                    <span class="text-[11px] font-extrabold text-blue-600 dark:text-blue-400 mt-1 tracking-tight">Add
+                        Item</span>
                 </button>
             </div>
 
             <!-- Templates Button -->
-            <button onclick="switchView('templates')" id="navTemplates" class="nav-btn flex-1 flex flex-col items-center py-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200">
+            <button onclick="switchView('templates')" id="navTemplates"
+                class="nav-btn flex-1 flex flex-col items-center py-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200">
                 <i class="fa-solid fa-layer-group text-lg mb-0.5"></i>
                 <span class="text-[11px] font-semibold tracking-tight">Templates</span>
             </button>
 
             <!-- Orders Button -->
-            <button onclick="switchView('orders')" id="navOrders" class="nav-btn flex-1 flex flex-col items-center py-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200">
+            <button onclick="switchView('orders')" id="navOrders"
+                class="nav-btn flex-1 flex flex-col items-center py-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200">
                 <i class="fa-solid fa-receipt text-lg mb-0.5"></i>
                 <span class="text-[11px] font-semibold tracking-tight">Orders</span>
             </button>
         </nav>
 
         <!-- FULLY MOBILE-RESPONSIVE SLIDE-UP SHEET: ADD CUSTOM SPECIFICATION -->
-        <div id="addSpecModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden flex items-end justify-center transition-opacity">
+        <div id="addSpecModal"
+            class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden flex items-end justify-center transition-opacity">
             <!-- Modal Overlay Backdrop (Tap to close) -->
             <div onclick="closeAddSpecModal()" class="absolute inset-0"></div>
 
             <!-- Mobile-First Bottom Sheet -->
-            <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-t-3xl p-5 space-y-4 shadow-2xl border-t border-slate-200 dark:border-slate-800 animate-sheet max-h-[85vh] overflow-y-auto no-scrollbar pb-8">
-                
+            <div
+                class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-t-3xl p-5 space-y-4 shadow-2xl border-t border-slate-200 dark:border-slate-800 animate-sheet max-h-[85vh] overflow-y-auto no-scrollbar pb-8">
+
                 <!-- Swipe indicator handle for touch UX -->
                 <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 mx-auto -mt-1 mb-2"></div>
 
                 <div class="flex items-center justify-between border-b pb-3 border-slate-100 dark:border-slate-800">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center text-sm font-bold">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center text-sm font-bold">
                             <i class="fa-solid fa-sliders"></i>
                         </div>
                         <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">Add Custom Specification</h3>
                     </div>
-                    <button onclick="closeAddSpecModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center">
+                    <button onclick="closeAddSpecModal()"
+                        class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center">
                         <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
 
                 <div class="space-y-3.5">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Specification Name</label>
-                        <input type="text" id="modalSpecKey" list="specKeySuggestions" onchange="handleSpecKeyChange(this.value)" placeholder="e.g. Battery Life, Weight, Warranty"
-                               class="w-full px-3.5 py-3 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label
+                            class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Specification
+                            Name</label>
+                        <input type="text" id="modalSpecKey" list="specKeySuggestions"
+                            onchange="handleSpecKeyChange(this.value)" placeholder="e.g. Battery Life, Weight, Warranty"
+                            class="w-full px-3.5 py-3 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         <datalist id="specKeySuggestions">
                             <option value="Battery Life"></option>
                             <option value="Display Type"></option>
@@ -622,9 +737,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Specification Value</label>
-                        <input type="text" id="modalSpecValue" list="specValueSuggestions" placeholder="Select or type value..."
-                               class="w-full px-3.5 py-3 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label
+                            class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Specification
+                            Value</label>
+                        <input type="text" id="modalSpecValue" list="specValueSuggestions"
+                            placeholder="Select or type value..."
+                            class="w-full px-3.5 py-3 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         <datalist id="specValueSuggestions">
                             <!-- Populated dynamically based on selected spec key -->
                         </datalist>
@@ -632,10 +750,12 @@
                 </div>
 
                 <div class="flex items-center gap-3 pt-2">
-                    <button type="button" onclick="closeAddSpecModal()" class="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <button type="button" onclick="closeAddSpecModal()"
+                        class="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
                         Cancel
                     </button>
-                    <button type="button" onclick="confirmAddSpec()" class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-transform">
+                    <button type="button" onclick="confirmAddSpec()"
+                        class="flex-1 py-3 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-transform">
                         Add Spec
                     </button>
                 </div>
@@ -643,26 +763,35 @@
         </div>
 
         <!-- FULLY MOBILE-RESPONSIVE DELETE CONFIRMATION MODAL -->
-        <div id="confirmModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-            <div onclick="document.getElementById('confirmModal').classList.add('hidden')" class="absolute inset-0"></div>
-            
-            <div class="relative bg-white dark:bg-slate-900 rounded-2xl p-5 max-w-xs w-full space-y-3 text-center shadow-2xl border border-slate-200 dark:border-slate-800 animate-pop">
-                <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 flex items-center justify-center mx-auto text-xl shadow-inner">
+        <div id="confirmModal"
+            class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+            <div onclick="document.getElementById('confirmModal').classList.add('hidden')" class="absolute inset-0">
+            </div>
+
+            <div
+                class="relative bg-white dark:bg-slate-900 rounded-2xl p-5 max-w-xs w-full space-y-3 text-center shadow-2xl border border-slate-200 dark:border-slate-800 animate-pop">
+                <div
+                    class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 flex items-center justify-center mx-auto text-xl shadow-inner">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <div>
-                    <h3 id="confirmTitle" class="font-bold text-base text-slate-900 dark:text-slate-100">Are you sure?</h3>
-                    <p id="confirmText" class="text-xs text-slate-500 dark:text-slate-400 mt-1">This action cannot be undone.</p>
+                    <h3 id="confirmTitle" class="font-bold text-base text-slate-900 dark:text-slate-100">Are you sure?
+                    </h3>
+                    <p id="confirmText" class="text-xs text-slate-500 dark:text-slate-400 mt-1">This action cannot be
+                        undone.</p>
                 </div>
                 <div class="flex gap-2.5 pt-2">
-                    <button id="confirmCancelBtn" class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300">Cancel</button>
-                    <button id="confirmOkBtn" class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold shadow-md shadow-rose-500/20">Delete</button>
+                    <button id="confirmCancelBtn"
+                        class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300">Cancel</button>
+                    <button id="confirmOkBtn"
+                        class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold shadow-md shadow-rose-500/20">Delete</button>
                 </div>
             </div>
         </div>
 
         <!-- Custom Notification Toast Container -->
-        <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-bold shadow-xl flex items-center gap-2 border border-slate-700 animate-toast">
+        <div id="toast"
+            class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-bold shadow-xl flex items-center gap-2 border border-slate-700 animate-toast">
             <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
             <span id="toastMsg">Product saved successfully!</span>
         </div>
@@ -766,7 +895,7 @@
         /* ==========================================================================
            INITIALIZATION & TELEGRAM WEBAPP INTEGRATION
            ========================================================================== */
-        window.onload = function() {
+        window.onload = function () {
             initThemeDetection();
 
             // Load products from LocalStorage or use default samples
@@ -778,18 +907,18 @@
 
         function initThemeDetection() {
             const hasTelegram = window.Telegram && window.Telegram.WebApp;
-            
+
             if (hasTelegram) {
                 const tg = window.Telegram.WebApp;
                 tg.ready();
                 tg.expand();
-                
+
                 // Automatically apply theme based on Telegram's active colorScheme ('dark' or 'light')
                 const isDark = tg.colorScheme === 'dark';
                 applyTheme(isDark);
 
                 // Live event listener for when the user changes theme in Telegram settings
-                tg.onEvent('themeChanged', function() {
+                tg.onEvent('themeChanged', function () {
                     applyTheme(tg.colorScheme === 'dark');
                 });
             } else {
@@ -848,7 +977,7 @@
             if (saved) {
                 try {
                     products = JSON.parse(saved);
-                } catch(e) {
+                } catch (e) {
                     products = [...SAMPLE_PRODUCTS];
                 }
             } else {
@@ -867,7 +996,7 @@
         function switchView(viewName) {
             // Hide all sections
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-            
+
             // Unhighlight bottom nav buttons
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('active', 'text-blue-600', 'dark:text-blue-400');
@@ -914,7 +1043,7 @@
 
             // Apply filters
             let filtered = products.filter(p => {
-                const matchesSearch = searchQuery === '' || 
+                const matchesSearch = searchQuery === '' ||
                     p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                     (p.specs.Processor && p.specs.Processor.toLowerCase().includes(searchQuery.toLowerCase())) ||
                     (p.specs.Graphics && p.specs.Graphics.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -944,7 +1073,7 @@
             filtered.forEach(prod => {
                 const card = document.createElement('div');
                 card.className = "glass-panel rounded-xl border p-3 flex gap-3 relative hover:shadow-md transition-all group";
-                
+
                 const mainImg = (prod.images && prod.images.length > 0) ? prod.images[0] : 'https://placehold.co/200x200/22c55e/ffffff?text=Laptop';
                 const isAvailable = prod.status === 'available';
 
@@ -1045,7 +1174,7 @@
 
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = function(evt) {
+                reader.onload = function (evt) {
                     uploadedImages.push(evt.target.result);
                     renderImagePreviews();
                     updateLivePreview();
@@ -1166,7 +1295,7 @@
             const title = document.getElementById('inputTitle').value || 'Laptop Title Here';
             const price = document.getElementById('inputPrice').value || '0';
             const isAvail = document.getElementById('inputStatusToggle').checked;
-            
+
             // Collect Specs
             const proc = document.getElementById('specProcessor').value;
             const ram = document.getElementById('specRam').value;
@@ -1215,6 +1344,7 @@
         }
 
         /* SAVE / SUBMIT PRODUCT FORM */
+        /* SAVE / SUBMIT PRODUCT FORM - CONNECTED TO TELEGRAM BOT */
         function handleFormSubmit(e) {
             e.preventDefault();
 
@@ -1224,11 +1354,7 @@
             const category = document.getElementById('inputCategory').value;
             const isAvail = document.getElementById('inputStatusToggle').checked;
 
-            if (uploadedImages.length === 0) {
-                uploadedImages.push('https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=600&q=80');
-            }
-
-            // Specs Object
+            // Build specs object
             const specsObj = {};
             if (document.getElementById('specProcessor').value) specsObj['Processor'] = document.getElementById('specProcessor').value;
             if (document.getElementById('specRam').value) specsObj['RAM'] = document.getElementById('specRam').value;
@@ -1246,12 +1372,60 @@
                 address: document.getElementById('contactAddress').value
             };
 
-            if (editId) {
-                // Update Existing
-                const index = products.findIndex(p => p.id == editId);
-                if (index !== -1) {
-                    products[index] = {
-                        ...products[index],
+            // ✅ CHECK: Are we in Telegram?
+            const hasTelegram = window.Telegram && window.Telegram.WebApp;
+
+            if (hasTelegram) {
+                // ✅ CORRECT: Send data to Telegram Bot
+                const tg = window.Telegram.WebApp;
+
+                // Show loading state
+                tg.MainButton.text = "⏳ Saving...";
+                tg.MainButton.showProgress();
+
+                // Prepare data
+                const productData = {
+                    title: title,
+                    price: price.replace(/,/g, ''),
+                    status: isAvail ? 'available' : 'sold',
+                    category: category,
+                    specs: specsObj,
+                    contact: contactObj,
+                    images: uploadedImages  // Base64 images
+                };
+
+                // ✅ SEND TO BOT
+                tg.sendData(JSON.stringify(productData));
+
+                // Show toast
+                showToast("Sending product to bot... 🚀");
+
+                // Close after 1 second (optional - let user see confirmation)
+                setTimeout(() => {
+                    tg.close();
+                }, 1000);
+
+            } else {
+                // FALLBACK: Save locally (for testing in browser)
+                if (editId) {
+                    const index = products.findIndex(p => p.id == editId);
+                    if (index !== -1) {
+                        products[index] = {
+                            ...products[index],
+                            title,
+                            price,
+                            category,
+                            status: isAvail ? 'available' : 'sold',
+                            images: uploadedImages,
+                            specs: specsObj,
+                            contact: contactObj,
+                            updated_at: Date.now()
+                        };
+                        showToast("Product updated! (Local mode) ✏️");
+                    }
+                } else {
+                    const newProduct = {
+                        id: Date.now(),
                         title,
                         price,
                         category,
@@ -1259,30 +1433,16 @@
                         images: uploadedImages,
                         specs: specsObj,
                         contact: contactObj,
-                        updated_at: Date.now()
+                        created_at: Date.now()
                     };
-                    showToast("Product updated successfully! ✏️");
+                    products.unshift(newProduct);
+                    showToast("Product added! (Local mode) 📦");
                 }
-            } else {
-                // Create New
-                const newProduct = {
-                    id: Date.now(),
-                    title,
-                    price,
-                    category,
-                    status: isAvail ? 'available' : 'sold',
-                    images: uploadedImages,
-                    specs: specsObj,
-                    contact: contactObj,
-                    created_at: Date.now()
-                };
-                products.unshift(newProduct);
-                showToast("New Product listed successfully! 📦");
-            }
 
-            saveProductsToStorage();
-            resetForm();
-            switchView('dashboard');
+                saveProductsToStorage();
+                resetForm();
+                switchView('dashboard');
+            }
         }
 
         function editProduct(id) {
@@ -1349,10 +1509,10 @@
             const modal = document.getElementById('confirmModal');
             document.getElementById('confirmTitle').innerText = "Delete Laptop Listing?";
             document.getElementById('confirmText').innerText = "Are you sure you want to delete this laptop from inventory?";
-            
+
             modal.classList.remove('hidden');
 
-            document.getElementById('confirmOkBtn').onclick = function() {
+            document.getElementById('confirmOkBtn').onclick = function () {
                 products = products.filter(p => p.id != id);
                 saveProductsToStorage();
                 renderDashboard();
@@ -1360,7 +1520,7 @@
                 showToast("Product deleted from catalog", true);
             };
 
-            document.getElementById('confirmCancelBtn').onclick = function() {
+            document.getElementById('confirmCancelBtn').onclick = function () {
                 modal.classList.add('hidden');
             };
         }
@@ -1435,7 +1595,7 @@
                         </div>
                         <div class="flex items-center justify-between text-slate-600 dark:text-slate-300">
                             <span>✈️ Telegram:</span>
-                            <a href="https://t.me/${prod.contact.telegram.replace('@','')}" target="_blank" class="font-bold text-blue-500">${prod.contact.telegram}</a>
+                            <a href="https://t.me/${prod.contact.telegram.replace('@', '')}" target="_blank" class="font-bold text-blue-500">${prod.contact.telegram}</a>
                         </div>
                         <div class="flex items-center justify-between text-slate-600 dark:text-slate-300">
                             <span>📍 Location:</span>
@@ -1514,7 +1674,7 @@
             SAMPLE_ORDERS.forEach(ord => {
                 const card = document.createElement('div');
                 card.className = "glass-panel p-3.5 rounded-xl border flex flex-col space-y-2";
-                
+
                 let statusColor = "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300";
                 if (ord.status === 'Confirmed') statusColor = "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300";
                 if (ord.status === 'Delivered') statusColor = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300";
@@ -1528,13 +1688,13 @@
                     <div class="flex items-center justify-between pt-1">
                         <div>
                             <h4 class="font-bold text-xs">${ord.item}</h4>
-                            <p class="text-[11px] text-slate-500">Buyer: ${ord.customer} (<a href="https://t.me/${ord.telegram.replace('@','')}" class="text-blue-500 font-semibold">${ord.telegram}</a>)</p>
+                            <p class="text-[11px] text-slate-500">Buyer: ${ord.customer} (<a href="https://t.me/${ord.telegram.replace('@', '')}" class="text-blue-500 font-semibold">${ord.telegram}</a>)</p>
                         </div>
                         <span class="font-extrabold text-xs text-blue-600 dark:text-blue-400">${ord.price}</span>
                     </div>
 
                     <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-                        <a href="https://t.me/${ord.telegram.replace('@','')}" target="_blank" class="flex-1 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold text-[11px] text-center">
+                        <a href="https://t.me/${ord.telegram.replace('@', '')}" target="_blank" class="flex-1 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold text-[11px] text-center">
                             <i class="fa-paper-plane text-xs mr-1"></i> Contact Buyer
                         </a>
                         <button onclick="showToast('Order status updated!')" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-semibold">
@@ -1556,8 +1716,8 @@
                 specsFormatted += `• ${k}: ${prod.specs[k]}\n`;
             });
 
-            const text = 
-`💻 *${prod.title}*
+            const text =
+                `💻 *${prod.title}*
 💰 *Price:* ${prod.price} ETB
 🟢 *Status:* ${prod.status === 'available' ? 'Available' : 'Sold Out'}
 
@@ -1606,4 +1766,5 @@ ${specsFormatted}
         }
     </script>
 </body>
+
 </html>
