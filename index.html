@@ -987,7 +987,34 @@
         }
 
         function saveProductsToStorage() {
+            // ✅ 1. Save to localStorage (keep this for fallback/display)
             localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+
+            // ✅ 2. NEW: Send to bot/database via Telegram WebApp
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+
+                // Get the latest product (the one just added)
+                const latestProduct = products[0]; // Assuming newest is first
+
+                if (latestProduct) {
+                    // Prepare data for bot
+                    const productData = {
+                        title: latestProduct.title,
+                        price: latestProduct.price.replace(/,/g, ''),
+                        status: latestProduct.status,
+                        category: latestProduct.category,
+                        specs: latestProduct.specs || {},
+                        contact: latestProduct.contact || {},
+                        images: latestProduct.images || []
+                    };
+
+                    // ✅ SEND TO BOT
+                    tg.sendData(JSON.stringify(productData));
+
+                    console.log("📤 Data sent to bot:", productData.title);
+                }
+            }
         }
 
         /* ==========================================================================
