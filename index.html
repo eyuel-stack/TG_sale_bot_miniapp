@@ -705,7 +705,12 @@
            ========================================================================== */
         
         // Base API URL for your Python Backend (Change window.ENV_API_URL or use relative /api)
-        const API_BASE_URL = window.ENV_API_URL || '/api';
+        // const API_BASE_URL = window.ENV_API_URL || '/api';
+        // Option 1: Hardcode for testing
+        // const API_BASE_URL = 'http://localhost:8000/api';
+        
+        // Option 2: Use environment variable (better)
+        const API_BASE_URL = window.ENV_API_URL || 'http://localhost:8000/api';
         
         let products = [];
         let uploadedImages = [];
