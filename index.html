@@ -706,7 +706,7 @@
            ========================================================================== */
         
         // Base API URL for your Python Backend (Change window.ENV_API_URL or use relative /api)
-        const API_BASE_URL = window.ENV_API_URL || 'http:localhost:8000/api';
+        const API_BASE_URL = window.ENV_API_URL || '/api';
         
         let products = [];
         let uploadedImages = [];
@@ -715,6 +715,35 @@
         let activeStatusFilter = 'all';
         let searchQuery = '';
         let isBackendConnected = false;
+
+        // Smart Cache Configuration (Time-To-Live in milliseconds)
+        const CACHE_TTL = {
+            products: 60 * 1000, // 60 seconds
+            orders: 30 * 1000,   // 30 seconds
+            stats: 60 * 1000     // 60 seconds
+        };
+
+        const cacheStore = {
+            products: { data: null, timestamp: 0 },
+            orders: { data: null, timestamp: 0 },
+            stats: { data: null, timestamp: 0 }
+        };
+
+        // Helper to evaluate if cached data is still fresh
+        function isCacheValid(key) {
+            if (!cacheStore[key] || !cacheStore[key].data) return false;
+            const age = Date.now() - cacheStore[key].timestamp;
+            return age < CACHE_TTL[key];
+        }
+
+        // Helper to manually invalidate cache (used during creates, edits, deletes)
+        function invalidateCache(key) {
+            if (key && cacheStore[key]) {
+                cacheStore[key].timestamp = 0;
+            } else {
+                Object.keys(cacheStore).forEach(k => cacheStore[k].timestamp = 0);
+            }
+        }
 
         // Context-Aware Value Suggestions for Custom Specs
         const SPEC_VALUE_PRESETS = {
@@ -812,33 +841,67 @@
 
         async function retryBackendConnection() {
             showToast("Retrying backend connection...");
-            await fetchProductsFromBackend();
-            await fetchOrdersFromBackend();
+            invalidateCache(); // Force cache clearance on manual retry
+            await fetchProductsFromBackend(true);
+            await fetchOrdersFromBackend(true);
         }
 
-        async function fetchProductsFromBackend() {
+        async function fetchProductsFromBackend(forceRefresh = false) {
+            // Check cache validity unless forceRefresh is explicitly requested
+            if (!forceRefresh && isCacheValid('products')) {
+                products = cacheStore.products.data;
+                renderDashboard();
+                return;
+            }
+
             showLoader("Loading inventory from database...");
             try {
                 // GET /api/products
                 const data = await apiRequest('/products');
                 products = Array.isArray(data) ? data : (data.products || []);
+                
+                // Save fresh data into Cache Store with current timestamp
+                cacheStore.products = { data: products, timestamp: Date.now() };
+                cacheStore.stats = { data: { total: products.length }, timestamp: Date.now() };
+
                 renderDashboard();
             } catch (err) {
-                showToast(`Server Connection Failed: ${err.message}`, true);
+                // Fallback to cached data if network request fails
+                if (cacheStore.products.data) {
+                    products = cacheStore.products.data;
+                    showToast(`Offline mode: Showing cached products`, true);
+                } else {
+                    showToast(`Server Connection Failed: ${err.message}`, true);
+                }
                 renderDashboard(); // Will show empty or error state in catalog
             } finally {
                 hideLoader();
             }
         }
 
-        async function fetchOrdersFromBackend() {
+        async function fetchOrdersFromBackend(forceRefresh = false) {
+            // Check cache validity unless forceRefresh is explicitly requested
+            if (!forceRefresh && isCacheValid('orders')) {
+                sampleOrders = cacheStore.orders.data;
+                renderOrders();
+                renderDashboard();
+                return;
+            }
+
             try {
                 // GET /api/orders
                 const data = await apiRequest('/orders');
                 sampleOrders = Array.isArray(data) ? data : (data.orders || []);
+                
+                // Save fresh data into Cache Store
+                cacheStore.orders = { data: sampleOrders, timestamp: Date.now() };
+
                 renderOrders();
                 renderDashboard(); // Refresh stats with real order count
             } catch (err) {
+                if (cacheStore.orders.data) {
+                    sampleOrders = cacheStore.orders.data;
+                }
                 console.warn("Could not load orders from backend:", err.message);
                 showToast(`Failed to load orders: ${err.message}`, true);
             }
@@ -874,6 +937,7 @@
 
         function handleFormSubmit(event) {
             event.preventDefault();
+            invalidateCache('products'); // Invalidate product cache so next fetch gets fresh data
             showToast("Product saved successfully! 🎉");
             switchView('dashboard');
         }
@@ -942,6 +1006,7 @@
         }
 
         function toggleProductStatus(id) { 
+            invalidateCache('products');
             showToast("Product availability status toggled."); 
         }
 
@@ -957,6 +1022,7 @@
             // Setup temporary handlers for the modal buttons
             document.getElementById('confirmOkBtn').onclick = () => {
                 modal.classList.add('hidden');
+                invalidateCache('products');
                 showToast("Product deleted successfully.");
             };
             document.getElementById('confirmCancelBtn').onclick = () => {
@@ -1420,9 +1486,10 @@
             try {
                 // PATCH /api/orders/{orderId}/status
                 await apiRequest(`/orders/${orderId}/status`, 'PATCH', { status: newStatus });
+                invalidateCache('orders'); // Clear order cache on mutation
                 showToast(`Order status updated to ${newStatus.toUpperCase()}! 🚀`);
                 closeOrderDetail();
-                await fetchOrdersFromBackend();
+                await fetchOrdersFromBackend(true);
             } catch (err) {
                 showToast(`Failed to update status: ${err.message}`, true);
             } finally {
