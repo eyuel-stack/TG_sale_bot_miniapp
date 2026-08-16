@@ -706,7 +706,7 @@
            ========================================================================== */
         
         // Base API URL for your Python Backend (Change window.ENV_API_URL or use relative /api)
-        const API_BASE_URL = window.ENV_API_URL || 'http://localhost:8000/api';
+        const API_BASE_URL = window.ENV_API_URL || 'http:localhost:8000/api';
         
         let products = [];
         let uploadedImages = [];
@@ -716,34 +716,11 @@
         let searchQuery = '';
         let isBackendConnected = false;
 
-        // Smart Cache Configuration (Time-To-Live in milliseconds)
-        const CACHE_TTL = {
-            products: 60 * 1000, // 60 seconds
-            orders: 30 * 1000,   // 30 seconds
-            stats: 60 * 1000     // 60 seconds
-        };
-
-        const cacheStore = {
-            products: { data: null, timestamp: 0 },
-            orders: { data: null, timestamp: 0 },
-            stats: { data: null, timestamp: 0 }
-        };
-
-        // Helper to evaluate if cached data is still fresh
-        function isCacheValid(key) {
-            if (!cacheStore[key] || !cacheStore[key].data) return false;
-            const age = Date.now() - cacheStore[key].timestamp;
-            return age < CACHE_TTL[key];
-        }
-
-        // Helper to manually invalidate cache (used during creates, edits, deletes)
-        function invalidateCache(key) {
-            if (key && cacheStore[key]) {
-                cacheStore[key].timestamp = 0;
-            } else {
-                Object.keys(cacheStore).forEach(k => cacheStore[k].timestamp = 0);
-            }
-        }
+        // Polling interval handles for real-time backend sync
+        let productsPollIntervalId = null;
+        let ordersPollIntervalId = null;
+        const PRODUCTS_POLL_MS = 60000; // Refresh products every 60 seconds
+        const ORDERS_POLL_MS = 30000;   // Refresh orders every 30 seconds
 
         // Context-Aware Value Suggestions for Custom Specs
         const SPEC_VALUE_PRESETS = {
@@ -837,202 +814,130 @@
             await fetchProductsFromBackend();
             await fetchOrdersFromBackend();
             updateLivePreview();
+
+            // Start real-time polling: products every 60s, orders every 30s
+            startRealtimePolling();
         };
+
+        function startRealtimePolling() {
+            // Clear any pre-existing intervals before (re)starting, to avoid duplicates
+            if (productsPollIntervalId) clearInterval(productsPollIntervalId);
+            if (ordersPollIntervalId) clearInterval(ordersPollIntervalId);
+
+            productsPollIntervalId = setInterval(() => {
+                fetchProductsFromBackend();
+            }, PRODUCTS_POLL_MS);
+
+            ordersPollIntervalId = setInterval(() => {
+                fetchOrdersFromBackend();
+            }, ORDERS_POLL_MS);
+        }
 
         async function retryBackendConnection() {
             showToast("Retrying backend connection...");
-            invalidateCache(); // Force cache clearance on manual retry
-            await fetchProductsFromBackend(true);
-            await fetchOrdersFromBackend(true);
+            await fetchProductsFromBackend();
+            await fetchOrdersFromBackend();
         }
 
-        async function fetchProductsFromBackend(forceRefresh = false) {
-            // Check cache validity unless forceRefresh is explicitly requested
-            if (!forceRefresh && isCacheValid('products')) {
-                products = cacheStore.products.data;
-                renderDashboard();
-                return;
-            }
-
+        async function fetchProductsFromBackend() {
             showLoader("Loading inventory from database...");
             try {
                 // GET /api/products
                 const data = await apiRequest('/products');
                 products = Array.isArray(data) ? data : (data.products || []);
-                
-                // Save fresh data into Cache Store with current timestamp
-                cacheStore.products = { data: products, timestamp: Date.now() };
-                cacheStore.stats = { data: { total: products.length }, timestamp: Date.now() };
-
                 renderDashboard();
             } catch (err) {
-                // Fallback to cached data if network request fails
-                if (cacheStore.products.data) {
-                    products = cacheStore.products.data;
-                    showToast(`Offline mode: Showing cached products`, true);
-                } else {
-                    showToast(`Server Connection Failed: ${err.message}`, true);
-                }
+                showToast(`Server Connection Failed: ${err.message}`, true);
                 renderDashboard(); // Will show empty or error state in catalog
             } finally {
                 hideLoader();
             }
         }
 
-        async function fetchOrdersFromBackend(forceRefresh = false) {
-            // Check cache validity unless forceRefresh is explicitly requested
-            if (!forceRefresh && isCacheValid('orders')) {
-                sampleOrders = cacheStore.orders.data;
-                renderOrders();
-                renderDashboard();
-                return;
-            }
-
+        async function fetchOrdersFromBackend() {
             try {
                 // GET /api/orders
                 const data = await apiRequest('/orders');
                 sampleOrders = Array.isArray(data) ? data : (data.orders || []);
-                
-                // Save fresh data into Cache Store
-                cacheStore.orders = { data: sampleOrders, timestamp: Date.now() };
-
                 renderOrders();
                 renderDashboard(); // Refresh stats with real order count
             } catch (err) {
-                if (cacheStore.orders.data) {
-                    sampleOrders = cacheStore.orders.data;
-                }
                 console.warn("Could not load orders from backend:", err.message);
                 showToast(`Failed to load orders: ${err.message}`, true);
             }
         }
 
-        // --- Added Missing Function Handlers to Fix UI Errors ---
-        
-        function updateLivePreview() {
-            const previewCard = document.getElementById('livePreviewCard');
-            if (previewCard) {
-                const title = document.getElementById('inputTitle').value || 'Laptop Title';
-                const price = document.getElementById('inputPrice').value || '0';
-                previewCard.innerHTML = `
-                    <div class="text-sm">
-                        <p class="font-bold">💻 ${title}</p>
-                        <p class="font-extrabold text-blue-600 mt-1">💰 Price: ${price} ETB</p>
-                        <p class="text-xs text-slate-500 mt-2 italic">Preview updates as you type...</p>
-                    </div>`;
+        function updateConnectionStatus(isConnected, errorMsg = '') {
+            isBackendConnected = isConnected;
+            const dot = document.getElementById('backendStatusDot');
+            const statusText = document.getElementById('backendStatusText');
+            const errorBanner = document.getElementById('backendErrorBanner');
+            const errorText = document.getElementById('backendErrorMsg');
+
+            if (isConnected) {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse";
+                statusText.innerText = "Connected to Python Bot API";
+                errorBanner.classList.add('hidden');
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-rose-500 inline-block";
+                statusText.innerText = "Offline / API Disconnected";
+                if (errorText) errorText.innerText = errorMsg || "Failed to reach backend server.";
+                errorBanner.classList.remove('hidden');
             }
         }
 
-        function handleImageUpload(event) { 
-            showToast("Images selected successfully."); 
+        function showLoader(text = "Syncing with server...") {
+            const loader = document.getElementById('globalLoader');
+            const textEl = document.getElementById('loaderText');
+            if (textEl) textEl.innerText = text;
+            if (loader) loader.classList.remove('hidden');
         }
 
-        function formatPriceInput(el) {
-            // Remove non-numeric chars and format with commas
-            let val = el.value.replace(/,/g, '').replace(/[^\d]/g, '');
-            if (val !== '') {
-                el.value = Number(val).toLocaleString('en-US');
-            }
+        function hideLoader() {
+            const loader = document.getElementById('globalLoader');
+            if (loader) loader.classList.add('hidden');
         }
 
-        function handleFormSubmit(event) {
-            event.preventDefault();
-            invalidateCache('products'); // Invalidate product cache so next fetch gets fresh data
-            showToast("Product saved successfully! 🎉");
-            switchView('dashboard');
-        }
-
-        function resetForm() {
-            document.getElementById('productForm').reset();
+        /* ==========================================================================
+           INITIALIZATION & BACKEND SYNC
+           ========================================================================== */
+        /*window.onload = function() {
+            initThemeDetection();
+            fetchProductsFromBackend();
+            fetchOrdersFromBackend();
             updateLivePreview();
-            showToast("Form cleared.");
+        };*/
+
+        async function retryBackendConnection() {
+            showToast("Retrying backend connection...");
+            await fetchProductsFromBackend();
+            await fetchOrdersFromBackend();
         }
 
-        function openAddSpecModal() { 
-            document.getElementById('addSpecModal').classList.remove('hidden'); 
-        }
-
-        function closeAddSpecModal() { 
-            document.getElementById('addSpecModal').classList.add('hidden'); 
-        }
-
-        function handleSpecKeyChange(val) {
-            const dataList = document.getElementById('specValueSuggestions');
-            dataList.innerHTML = '';
-            if (SPEC_VALUE_PRESETS[val]) {
-                SPEC_VALUE_PRESETS[val].forEach(preset => {
-                    const opt = document.createElement('option');
-                    opt.value = preset;
-                    dataList.appendChild(opt);
-                });
+        async function fetchProductsFromBackend() {
+            showLoader("Loading inventory from database...");
+            try {
+                // GET /api/products
+                const data = await apiRequest('/products');
+                products = Array.isArray(data) ? data : (data.products || []);
+                renderDashboard();
+            } catch (err) {
+                showToast(`Server Connection Failed: ${err.message}`, true);
+                renderDashboard(); // Will show empty or error state in catalog
+            } finally {
+                hideLoader();
             }
         }
 
-        function confirmAddSpec() {
-            const key = document.getElementById('modalSpecKey').value;
-            const val = document.getElementById('modalSpecValue').value;
-            if(!key || !val) {
-                showToast("Please enter both Name and Value", true);
-                return;
+        async function fetchOrdersFromBackend() {
+            try {
+                // GET /api/orders
+                const data = await apiRequest('/orders');
+                sampleOrders = Array.isArray(data) ? data : (data.orders || []);
+                renderOrders();
+            } catch (err) {
+                console.warn("Could not load orders from backend:", err.message);
             }
-            
-            // Remove empty placeholder row if it exists
-            const noSpecRow = document.getElementById('noCustomSpecsRow');
-            if (noSpecRow) noSpecRow.remove();
-
-            const tbody = document.getElementById('customSpecsTableBody');
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="p-2 font-medium text-slate-700 dark:text-slate-300">${key}</td>
-                <td class="p-2 text-slate-500">${val}</td>
-                <td class="p-2 text-center">
-                    <button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 p-1 rounded">
-                        <i class="fa-solid fa-trash text-[10px]"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-            
-            document.getElementById('modalSpecKey').value = '';
-            document.getElementById('modalSpecValue').value = '';
-            closeAddSpecModal();
-            showToast("Custom specification added!");
-        }
-
-        function viewProductDetail(id) { 
-            showToast("Loading product details...");
-            // Switch to detail view if it was fully implemented, otherwise dashboard
-            switchView('detail'); 
-        }
-
-        function toggleProductStatus(id) { 
-            invalidateCache('products');
-            showToast("Product availability status toggled."); 
-        }
-
-        function editProduct(id) { 
-            showToast("Opening editor...");
-            switchView('form'); 
-        }
-
-        function confirmDeleteProduct(id) { 
-            const modal = document.getElementById('confirmModal');
-            modal.classList.remove('hidden'); 
-            
-            // Setup temporary handlers for the modal buttons
-            document.getElementById('confirmOkBtn').onclick = () => {
-                modal.classList.add('hidden');
-                invalidateCache('products');
-                showToast("Product deleted successfully.");
-            };
-            document.getElementById('confirmCancelBtn').onclick = () => {
-                modal.classList.add('hidden');
-            };
-        }
-
-        function applyTemplate(type) { 
-            showToast(type.charAt(0).toUpperCase() + type.slice(1) + " template applied!");
-            switchView('form');
         }
 
         function initThemeDetection() {
@@ -1486,10 +1391,9 @@
             try {
                 // PATCH /api/orders/{orderId}/status
                 await apiRequest(`/orders/${orderId}/status`, 'PATCH', { status: newStatus });
-                invalidateCache('orders'); // Clear order cache on mutation
                 showToast(`Order status updated to ${newStatus.toUpperCase()}! 🚀`);
                 closeOrderDetail();
-                await fetchOrdersFromBackend(true);
+                await fetchOrdersFromBackend();
             } catch (err) {
                 showToast(`Failed to update status: ${err.message}`, true);
             } finally {
