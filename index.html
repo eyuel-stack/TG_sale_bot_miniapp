@@ -90,6 +90,11 @@
             transform: scale(0.95);
         }
 
+        .gradient-btn:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
         .gradient-text {
             background: var(--accent-gradient);
             -webkit-background-clip: text;
@@ -321,7 +326,7 @@
                         <div class="flex items-center justify-between pt-1">
                             <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Availability Status</span>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="inputStatusToggle" checked onchange="updateLivePreview()" class="sr-only peer">
+                                <input type="checkbox" id="inputStatusToggle" checked onchange="handleStatusToggleChange()" class="sr-only peer">
                                 <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-500"></div>
                                 <span id="statusToggleLabel" class="ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Available</span>
                             </label>
@@ -559,7 +564,7 @@
                         <h2 class="font-bold text-base">Recent Inquiries & Orders</h2>
                         <p class="text-xs text-slate-400">Incoming buyer requests from Telegram</p>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">3 New</span>
+                    <span id="ordersNewBadge" class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">0 New</span>
                 </div>
 
                 <div id="ordersList" class="space-y-3">
@@ -579,7 +584,7 @@
 
             <!-- Prominent Eye-Catching "Add Item" Floating Button -->
             <div class="flex-1 flex justify-center relative -top-4">
-                <button onclick="switchView('form')" id="navForm" class="nav-btn flex flex-col items-center group focus:outline-none">
+                <button onclick="resetForm(); switchView('form')" id="navForm" class="nav-btn flex flex-col items-center group focus:outline-none">
                     <div class="w-13 h-13 w-[52px] h-[52px] rounded-full gradient-btn text-white flex items-center justify-center shadow-lg shadow-blue-500/40 border-2 border-white dark:border-slate-900 transition-transform duration-200 group-hover:scale-110 group-active:scale-95 add-btn-glow">
                         <i class="fa-solid fa-plus text-xl font-extrabold"></i>
                     </div>
@@ -695,48 +700,64 @@
         /* ==========================================================================
            PYTHON BACKEND API CONFIGURATION & TELEGRAM AUTHENTICATION
            ========================================================================== 
-           Expected Python API Routes (FastAPI / Flask / Django):
-           - GET    /api/products           -> List products
-           - POST   /api/products           -> Create product
-           - PUT    /api/products/{id}      -> Update product
-           - PATCH  /api/products/{id}/status -> Toggle available/sold
-           - DELETE /api/products/{id}      -> Delete product
-           - GET    /api/orders             -> Fetch orders
-           - PATCH  /api/orders/{id}/status -> Update order status
+           Implemented + wired in this file:
+           - GET    /api/products               -> List products
+           - POST   /api/products               -> Create product
+           - PUT    /api/products/{id}          -> Update product
+           - PATCH  /api/products/{id}/status   -> Toggle available/sold
+           - DELETE /api/products/{id}          -> Delete product
+           - GET    /api/orders                 -> Fetch orders
+           - PATCH  /api/orders/{id}/status     -> Update order status
+
+           IMAGES: sent as base64 strings inside the product's "images" array
+           (no separate upload endpoint needed) - matches your backend's
+           expected product shape.
+
+           NOT built on the backend yet -> intentionally left as safe no-ops so
+           they never throw or call a missing route (search for "NO-OP" below):
+           - dashboard-level analytics/stats endpoint (stats are computed locally
+             from the already-fetched products/orders lists, so nothing extra
+             needs to exist on the server for the 4 stat cards to work)
            ========================================================================== */
         
-        // Base API URL for your Python Backend (Change window.ENV_API_URL or use relative /api)
+        // Base API URL for your Python Backend (set window.ENV_API_URL before this
+        // script runs if the backend is on a different origin than this page, e.g.
+        // window.ENV_API_URL = 'https://your-api.example.com/api';)
         const API_BASE_URL = window.ENV_API_URL || 'http://localhost:8000/api';
-        
+
+        // Max size per image before base64 encoding. Base64 inflates size by
+        // ~33%, and it all rides inside the JSON request body, so keep this
+        // conservative - large photos will slow down save and bloat your DB.
+        const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB
+
         let products = [];
-        let uploadedImages = [];
-        let customSpecsList = [];
+        let sampleOrders = [];
+        let uploadedImages = [];   // [{ id, previewUrl, url, status }]
+        let customSpecsList = [];  // [{ key, value }]
         let activeCategoryFilter = 'all';
         let activeStatusFilter = 'all';
         let searchQuery = '';
         let isBackendConnected = false;
+        let isFetchingProducts = false;
+        let isFetchingOrders = false;
 
         // Smart Cache Configuration (Time-To-Live in milliseconds)
         const CACHE_TTL = {
             products: 60 * 1000, // 60 seconds
             orders: 30 * 1000,   // 30 seconds
-            stats: 60 * 1000     // 60 seconds
         };
 
         const cacheStore = {
             products: { data: null, timestamp: 0 },
             orders: { data: null, timestamp: 0 },
-            stats: { data: null, timestamp: 0 }
         };
 
-        // Helper to evaluate if cached data is still fresh
         function isCacheValid(key) {
             if (!cacheStore[key] || !cacheStore[key].data) return false;
             const age = Date.now() - cacheStore[key].timestamp;
             return age < CACHE_TTL[key];
         }
 
-        // Helper to manually invalidate cache (used during creates, edits, deletes)
         function invalidateCache(key) {
             if (key && cacheStore[key]) {
                 cacheStore[key].timestamp = 0;
@@ -758,13 +779,29 @@
             "Color": ["Space Grey", "Silver Unibody", "Off Black", "Dark Metallic Slate"]
         };
 
-        let sampleOrders = [];
+        // Quick-add templates for the Templates view
+        const PRODUCT_TEMPLATES = {
+            gaming: {
+                category: 'gaming',
+                specs: { Processor: 'Intel Core i9 14th Gen', RAM: '32GB DDR5', Storage: '1TB NVMe Gen4 SSD', Screen: "16.0' ROG Nebula QHD+ 240Hz", Graphics: 'NVIDIA RTX 4070 8GB' }
+            },
+            business: {
+                category: 'business',
+                specs: { Processor: 'Intel Core i7 13th Gen', RAM: '16GB DDR5', Storage: '512GB NVMe SSD', Screen: "14.0' QHD 120Hz", Graphics: 'Intel Iris Xe Graphics' }
+            },
+            premium: {
+                category: 'premium',
+                specs: { Processor: 'Apple M3 Max (16-Core)', RAM: '32GB DDR5', Storage: '1TB NVMe Gen4 SSD', Screen: "13.3' Retina Display", Graphics: 'Apple M3 Max Integrated' }
+            }
+        };
+
+        // Keys considered "default" spec fields - anything else is a custom spec
+        const DEFAULT_SPEC_KEYS = ['Processor', 'RAM', 'Storage', 'Screen', 'Screen Size', 'Graphics'];
 
         /* ==========================================================================
            CORE API REQUEST CLIENT WITH TELEGRAM HEADERS & ERROR HANDLING
            ========================================================================== */
         async function apiRequest(endpoint, method = 'GET', body = null) {
-            // Retrieve Telegram WebApp Init Data for authentication on Python backend
             const tgInitData = window.Telegram?.WebApp?.initData || '';
             
             const headers = {
@@ -790,7 +827,10 @@
                 }
 
                 updateConnectionStatus(true);
-                return await response.json();
+
+                // Some endpoints (e.g. DELETE) may return no content
+                const text = await response.text();
+                return text ? JSON.parse(text) : {};
             } catch (err) {
                 console.error(`[API Error] ${method} ${endpoint}:`, err);
                 updateConnectionStatus(false, err.message);
@@ -834,126 +874,250 @@
            ========================================================================== */
         window.onload = async function() {
             initThemeDetection();
+            renderImagePreviews();
+            renderCustomSpecsTable();
             await fetchProductsFromBackend();
             await fetchOrdersFromBackend();
             updateLivePreview();
+            startRealtimePolling();
         };
 
         async function retryBackendConnection() {
             showToast("Retrying backend connection...");
-            invalidateCache(); // Force cache clearance on manual retry
+            invalidateCache();
             await fetchProductsFromBackend(true);
             await fetchOrdersFromBackend(true);
         }
 
-        async function fetchProductsFromBackend(forceRefresh = false) {
-            // Check cache validity unless forceRefresh is explicitly requested
+        // forceRefresh: bypass cache. silent: don't show the full-screen loader
+        // (used by the background poller so it doesn't interrupt the user).
+        async function fetchProductsFromBackend(forceRefresh = false, silent = false) {
             if (!forceRefresh && isCacheValid('products')) {
                 products = cacheStore.products.data;
                 renderDashboard();
                 return;
             }
+            if (isFetchingProducts) return; // avoid overlapping requests
+            isFetchingProducts = true;
 
-            showLoader("Loading inventory from database...");
+            if (!silent) showLoader("Loading inventory from database...");
             try {
-                // GET /api/products
                 const data = await apiRequest('/products');
                 products = Array.isArray(data) ? data : (data.products || []);
                 
-                // Save fresh data into Cache Store with current timestamp
                 cacheStore.products = { data: products, timestamp: Date.now() };
-                cacheStore.stats = { data: { total: products.length }, timestamp: Date.now() };
 
                 renderDashboard();
             } catch (err) {
-                // Fallback to cached data if network request fails
                 if (cacheStore.products.data) {
                     products = cacheStore.products.data;
-                    showToast(`Offline mode: Showing cached products`, true);
-                } else {
+                    if (!silent) showToast(`Offline mode: Showing cached products`, true);
+                } else if (!silent) {
                     showToast(`Server Connection Failed: ${err.message}`, true);
                 }
-                renderDashboard(); // Will show empty or error state in catalog
+                renderDashboard();
             } finally {
-                hideLoader();
+                isFetchingProducts = false;
+                if (!silent) hideLoader();
             }
         }
 
-        async function fetchOrdersFromBackend(forceRefresh = false) {
-            // Check cache validity unless forceRefresh is explicitly requested
+        async function fetchOrdersFromBackend(forceRefresh = false, silent = false) {
             if (!forceRefresh && isCacheValid('orders')) {
                 sampleOrders = cacheStore.orders.data;
                 renderOrders();
                 renderDashboard();
                 return;
             }
+            if (isFetchingOrders) return;
+            isFetchingOrders = true;
 
             try {
-                // GET /api/orders
                 const data = await apiRequest('/orders');
                 sampleOrders = Array.isArray(data) ? data : (data.orders || []);
                 
-                // Save fresh data into Cache Store
                 cacheStore.orders = { data: sampleOrders, timestamp: Date.now() };
 
                 renderOrders();
-                renderDashboard(); // Refresh stats with real order count
+                renderDashboard();
             } catch (err) {
                 if (cacheStore.orders.data) {
                     sampleOrders = cacheStore.orders.data;
                 }
                 console.warn("Could not load orders from backend:", err.message);
-                showToast(`Failed to load orders: ${err.message}`, true);
+                if (!silent) showToast(`Failed to load orders: ${err.message}`, true);
+            } finally {
+                isFetchingOrders = false;
             }
         }
 
-        // --- Added Missing Function Handlers to Fix UI Errors ---
-        
+        /* ==========================================================================
+           REAL-TIME (POLLING) UPDATES - tuned to not hammer the server
+           - Products change less often -> poll every 45s
+           - Orders are the time-sensitive one (buyers messaging in) -> 20s
+           - Both pause automatically when the tab/app isn't visible, and
+             refresh immediately the moment it becomes visible again.
+           ========================================================================== */
+        const PRODUCTS_POLL_MS = 45000;
+        const ORDERS_POLL_MS = 20000;
+        let productsPollTimer = null;
+        let ordersPollTimer = null;
+
+        function startRealtimePolling() {
+            stopRealtimePolling();
+            productsPollTimer = setInterval(() => {
+                if (document.visibilityState === 'visible') fetchProductsFromBackend(true, true);
+            }, PRODUCTS_POLL_MS);
+            ordersPollTimer = setInterval(() => {
+                if (document.visibilityState === 'visible') fetchOrdersFromBackend(true, true);
+            }, ORDERS_POLL_MS);
+        }
+
+        function stopRealtimePolling() {
+            if (productsPollTimer) clearInterval(productsPollTimer);
+            if (ordersPollTimer) clearInterval(ordersPollTimer);
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                // Catch up instantly on return instead of waiting for the next tick
+                fetchProductsFromBackend(true, true);
+                fetchOrdersFromBackend(true, true);
+            }
+        });
+
+        /* ==========================================================================
+           LIVE PREVIEW (Telegram post preview card while filling the form)
+           ========================================================================== */
         function updateLivePreview() {
             const previewCard = document.getElementById('livePreviewCard');
-            if (previewCard) {
-                const title = document.getElementById('inputTitle').value || 'Laptop Title';
-                const price = document.getElementById('inputPrice').value || '0';
-                previewCard.innerHTML = `
-                    <div class="text-sm">
-                        <p class="font-bold">💻 ${title}</p>
-                        <p class="font-extrabold text-blue-600 mt-1">💰 Price: ${price} ETB</p>
-                        <p class="text-xs text-slate-500 mt-2 italic">Preview updates as you type...</p>
-                    </div>`;
-            }
+            if (!previewCard) return;
+
+            const title = document.getElementById('inputTitle').value || 'Laptop Title';
+            const price = document.getElementById('inputPrice').value || '0';
+            const proc = document.getElementById('specProcessor').value;
+            const ram = document.getElementById('specRam').value;
+            const storage = document.getElementById('specStorage').value;
+            const img = uploadedImages.find(i => i.previewUrl)?.previewUrl;
+
+            previewCard.innerHTML = `
+                <div class="flex gap-3">
+                    ${img ? `<img src="${img}" class="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0">` : ''}
+                    <div class="text-sm min-w-0">
+                        <p class="font-bold truncate">💻 ${title}</p>
+                        <p class="font-extrabold text-blue-600 mt-1">💰 ${price} ETB</p>
+                        ${proc || ram || storage ? `<p class="text-[11px] text-slate-500 mt-1 truncate">${[proc, ram, storage].filter(Boolean).join(' • ')}</p>` : ''}
+                    </div>
+                </div>`;
         }
 
-        function handleImageUpload(event) { 
-            showToast("Images selected successfully."); 
+        function handleStatusToggleChange() {
+            const checked = document.getElementById('inputStatusToggle').checked;
+            document.getElementById('statusToggleLabel').innerText = checked ? 'Available' : 'Sold';
+            document.getElementById('statusToggleLabel').className = checked
+                ? 'ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400'
+                : 'ml-2 text-xs font-semibold text-rose-600 dark:text-rose-400';
+            updateLivePreview();
         }
 
         function formatPriceInput(el) {
-            // Remove non-numeric chars and format with commas
             let val = el.value.replace(/,/g, '').replace(/[^\d]/g, '');
             if (val !== '') {
                 el.value = Number(val).toLocaleString('en-US');
             }
         }
 
-        function handleFormSubmit(event) {
-            event.preventDefault();
-            invalidateCache('products'); // Invalidate product cache so next fetch gets fresh data
-            showToast("Product saved successfully! 🎉");
-            switchView('dashboard');
+        /* ==========================================================================
+           IMAGE HANDLING - no upload endpoint: each file is base64-encoded in
+           the browser and that string is sent straight inside the product's
+           "images" array, matching your backend's expected payload shape.
+           ========================================================================== */
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result); // "data:image/jpeg;base64,...."
+                reader.onerror = () => reject(new Error('Could not read file'));
+                reader.readAsDataURL(file);
+            });
         }
 
-        function resetForm() {
-            document.getElementById('productForm').reset();
+        async function handleImageUpload(event) {
+            const files = Array.from(event.target.files || []);
+            event.target.value = ''; // allow re-selecting the same file again later
+
+            if (uploadedImages.length + files.length > 5) {
+                showToast('Maximum 5 images allowed per product', true);
+                return;
+            }
+
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) {
+                    showToast(`${file.name} is not an image`, true);
+                    continue;
+                }
+                if (file.size > MAX_IMAGE_BYTES) {
+                    showToast(`${file.name} exceeds ${(MAX_IMAGE_BYTES / (1024 * 1024)).toFixed(0)}MB`, true);
+                    continue;
+                }
+
+                const entry = {
+                    id: `img_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                    previewUrl: null,
+                    url: null,
+                    status: 'uploading' // "encoding", really - reused so the same spinner UI applies
+                };
+                uploadedImages.push(entry);
+                renderImagePreviews();
+
+                try {
+                    const base64 = await fileToBase64(file);
+                    entry.previewUrl = base64;
+                    entry.url = base64;
+                    entry.status = 'done';
+                } catch (err) {
+                    entry.status = 'error';
+                    showToast(`Failed to read ${file.name}: ${err.message}`, true);
+                }
+                renderImagePreviews();
+                updateLivePreview();
+            }
+        }
+
+        function removeUploadedImage(id) {
+            uploadedImages = uploadedImages.filter(img => img.id !== id);
+            renderImagePreviews();
             updateLivePreview();
-            showToast("Form cleared.");
         }
 
-        function openAddSpecModal() { 
-            document.getElementById('addSpecModal').classList.remove('hidden'); 
+        function renderImagePreviews() {
+            const container = document.getElementById('imagePreviewContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            uploadedImages.forEach(img => {
+                const wrap = document.createElement('div');
+                wrap.className = 'relative shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700';
+                wrap.innerHTML = `
+                    <img src="${img.previewUrl}" class="w-full h-full object-cover ${img.status === 'uploading' ? 'opacity-40' : ''}">
+                    ${img.status === 'uploading' ? '<div class="absolute inset-0 flex items-center justify-center bg-slate-900/20"><i class="fa-solid fa-circle-notch fa-spin text-white text-sm"></i></div>' : ''}
+                    ${img.status === 'error' ? '<div class="absolute inset-0 bg-rose-500/50 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation text-white text-sm"></i></div>' : ''}
+                    <button type="button" onclick="removeUploadedImage('${img.id}')" class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-slate-900/70 text-white flex items-center justify-center text-[9px]">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                container.appendChild(wrap);
+            });
         }
 
-        function closeAddSpecModal() { 
-            document.getElementById('addSpecModal').classList.add('hidden'); 
+        /* ==========================================================================
+           CUSTOM SPECS - backed by an actual array so Edit can pre-fill it
+           ========================================================================== */
+        function openAddSpecModal() {
+            document.getElementById('addSpecModal').classList.remove('hidden');
+        }
+
+        function closeAddSpecModal() {
+            document.getElementById('addSpecModal').classList.add('hidden');
         }
 
         function handleSpecKeyChange(val) {
@@ -969,72 +1133,343 @@
         }
 
         function confirmAddSpec() {
-            const key = document.getElementById('modalSpecKey').value;
-            const val = document.getElementById('modalSpecValue').value;
-            if(!key || !val) {
-                showToast("Please enter both Name and Value", true);
+            const key = document.getElementById('modalSpecKey').value.trim();
+            const val = document.getElementById('modalSpecValue').value.trim();
+            if (!key || !val) {
+                showToast('Please enter both Name and Value', true);
                 return;
             }
-            
-            // Remove empty placeholder row if it exists
-            const noSpecRow = document.getElementById('noCustomSpecsRow');
-            if (noSpecRow) noSpecRow.remove();
-
-            const tbody = document.getElementById('customSpecsTableBody');
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="p-2 font-medium text-slate-700 dark:text-slate-300">${key}</td>
-                <td class="p-2 text-slate-500">${val}</td>
-                <td class="p-2 text-center">
-                    <button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 p-1 rounded">
-                        <i class="fa-solid fa-trash text-[10px]"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-            
+            customSpecsList.push({ key, value: val });
+            renderCustomSpecsTable();
             document.getElementById('modalSpecKey').value = '';
             document.getElementById('modalSpecValue').value = '';
             closeAddSpecModal();
-            showToast("Custom specification added!");
+            showToast('Custom specification added!');
         }
 
-        function viewProductDetail(id) { 
-            showToast("Loading product details...");
-            // Switch to detail view if it was fully implemented, otherwise dashboard
-            switchView('detail'); 
+        function removeCustomSpec(idx) {
+            customSpecsList.splice(idx, 1);
+            renderCustomSpecsTable();
         }
 
-        function toggleProductStatus(id) { 
-            invalidateCache('products');
-            showToast("Product availability status toggled."); 
+        function renderCustomSpecsTable() {
+            const tbody = document.getElementById('customSpecsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (customSpecsList.length === 0) {
+                tbody.innerHTML = `<tr id="noCustomSpecsRow"><td colspan="3" class="p-3 text-center text-slate-400 italic text-[11px]">No custom specs added yet. Tap "+ Custom Spec" above.</td></tr>`;
+                return;
+            }
+
+            customSpecsList.forEach((spec, idx) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-2 font-medium text-slate-700 dark:text-slate-300">${spec.key}</td>
+                    <td class="p-2 text-slate-500">${spec.value}</td>
+                    <td class="p-2 text-center">
+                        <button type="button" onclick="removeCustomSpec(${idx})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 p-1 rounded">
+                            <i class="fa-solid fa-trash text-[10px]"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
         }
 
-        function editProduct(id) { 
-            showToast("Opening editor...");
-            switchView('form'); 
-        }
+        /* ==========================================================================
+           FORM SUBMIT - actually collects every field + images + specs and
+           creates or updates the product on the backend.
+           ========================================================================== */
+        async function handleFormSubmit(event) {
+            event.preventDefault();
 
-        function confirmDeleteProduct(id) { 
-            const modal = document.getElementById('confirmModal');
-            modal.classList.remove('hidden'); 
-            
-            // Setup temporary handlers for the modal buttons
-            document.getElementById('confirmOkBtn').onclick = () => {
-                modal.classList.add('hidden');
+            const editId = document.getElementById('editProductId').value;
+            const title = document.getElementById('inputTitle').value.trim();
+            const price = document.getElementById('inputPrice').value.replace(/,/g, '').trim();
+            const category = document.getElementById('inputCategory').value;
+            const status = document.getElementById('inputStatusToggle').checked ? 'available' : 'sold';
+
+            if (!title || !price) {
+                showToast('Title and Price are required', true);
+                return;
+            }
+            if (uploadedImages.some(img => img.status === 'uploading')) {
+                showToast('Please wait for images to finish uploading', true);
+                return;
+            }
+
+            const specs = {};
+            const procVal = document.getElementById('specProcessor').value.trim();
+            const ramVal = document.getElementById('specRam').value.trim();
+            const storageVal = document.getElementById('specStorage').value.trim();
+            const screenVal = document.getElementById('specScreen').value.trim();
+            const gpuVal = document.getElementById('specGraphics').value.trim();
+            if (procVal) specs.Processor = procVal;
+            if (ramVal) specs.RAM = ramVal;
+            if (storageVal) specs.Storage = storageVal;
+            if (screenVal) specs.Screen = screenVal;
+            if (gpuVal) specs.Graphics = gpuVal;
+            customSpecsList.forEach(s => { specs[s.key] = s.value; });
+
+            const productPayload = {
+                title,
+                price,
+                category,
+                status,
+                specs,
+                images: uploadedImages.map(img => img.url).filter(Boolean),
+                contact: {
+                    phone: document.getElementById('contactPhone').value.trim(),
+                    telegram: document.getElementById('contactTelegram').value.trim(),
+                    address: document.getElementById('contactAddress').value.trim()
+                }
+            };
+
+            const submitBtn = document.querySelector('#productForm button[type="submit"]');
+            const submitText = document.getElementById('submitBtnText');
+            const originalText = submitText.innerText;
+            submitBtn.disabled = true;
+            submitText.innerText = editId ? 'Updating...' : 'Publishing...';
+
+            try {
+                if (editId) {
+                    await apiRequest(`/products/${editId}`, 'PUT', productPayload);
+                    showToast('Product updated successfully! ✅');
+                } else {
+                    await apiRequest('/products', 'POST', productPayload);
+                    showToast('Product published successfully! 🎉');
+                }
                 invalidateCache('products');
-                showToast("Product deleted successfully.");
+                resetForm();
+                switchView('dashboard');
+                await fetchProductsFromBackend(true);
+            } catch (err) {
+                showToast(`Failed to save product: ${err.message}`, true);
+            } finally {
+                submitBtn.disabled = false;
+                submitText.innerText = originalText;
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('productForm').reset();
+            document.getElementById('editProductId').value = '';
+            document.getElementById('formHeading').innerText = 'Add New Product';
+            document.getElementById('submitBtnText').innerText = 'Save & Publish Product';
+            document.getElementById('statusToggleLabel').innerText = 'Available';
+            document.getElementById('statusToggleLabel').className = 'ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400';
+            uploadedImages = [];
+            customSpecsList = [];
+            renderImagePreviews();
+            renderCustomSpecsTable();
+            updateLivePreview();
+        }
+
+        /* ==========================================================================
+           TEMPLATES
+           ========================================================================== */
+        function applyTemplate(type) {
+            const tpl = PRODUCT_TEMPLATES[type];
+            if (!tpl) return;
+
+            resetForm();
+            document.getElementById('inputCategory').value = tpl.category;
+            document.getElementById('specProcessor').value = tpl.specs.Processor || '';
+            document.getElementById('specRam').value = tpl.specs.RAM || '';
+            document.getElementById('specStorage').value = tpl.specs.Storage || '';
+            document.getElementById('specScreen').value = tpl.specs.Screen || '';
+            document.getElementById('specGraphics').value = tpl.specs.Graphics || '';
+            updateLivePreview();
+
+            showToast(type.charAt(0).toUpperCase() + type.slice(1) + ' template applied!');
+            switchView('form');
+        }
+
+        /* ==========================================================================
+           PRODUCT ACTIONS - status toggle, edit, delete (wired to backend)
+           ========================================================================== */
+        async function toggleProductStatus(id) {
+            const prod = products.find(p => p.id == id);
+            if (!prod) return;
+            const prevStatus = prod.status;
+            const newStatus = prevStatus === 'available' ? 'sold' : 'available';
+
+            // Optimistic UI update, revert if the backend call fails
+            prod.status = newStatus;
+            renderDashboard();
+
+            try {
+                await apiRequest(`/products/${id}/status`, 'PATCH', { status: newStatus });
+                invalidateCache('products');
+                showToast(`Marked as ${newStatus === 'available' ? 'Available' : 'Sold'}`);
+            } catch (err) {
+                prod.status = prevStatus;
+                renderDashboard();
+                showToast(`Failed to update status: ${err.message}`, true);
+            }
+        }
+
+        function editProduct(id) {
+            const prod = products.find(p => p.id == id);
+            if (!prod) {
+                showToast('Product not found', true);
+                return;
+            }
+
+            document.getElementById('editProductId').value = prod.id;
+            document.getElementById('formHeading').innerText = 'Edit Product';
+            document.getElementById('submitBtnText').innerText = 'Update Product';
+
+            document.getElementById('inputTitle').value = prod.title || '';
+            document.getElementById('inputPrice').value = prod.price || '';
+            document.getElementById('inputCategory').value = prod.category || 'standard';
+            document.getElementById('inputStatusToggle').checked = prod.status !== 'sold';
+            handleStatusToggleChange();
+
+            const specs = prod.specs || {};
+            document.getElementById('specProcessor').value = specs.Processor || '';
+            document.getElementById('specRam').value = specs.RAM || '';
+            document.getElementById('specStorage').value = specs.Storage || '';
+            document.getElementById('specScreen').value = specs.Screen || specs['Screen Size'] || '';
+            document.getElementById('specGraphics').value = specs.Graphics || '';
+
+            customSpecsList = Object.keys(specs)
+                .filter(k => !DEFAULT_SPEC_KEYS.includes(k))
+                .map(k => ({ key: k, value: specs[k] }));
+            renderCustomSpecsTable();
+
+            if (prod.contact) {
+                document.getElementById('contactPhone').value = prod.contact.phone || '';
+                document.getElementById('contactTelegram').value = prod.contact.telegram || '';
+                document.getElementById('contactAddress').value = prod.contact.address || '';
+            }
+
+            uploadedImages = (prod.images || []).map((url, i) => ({ id: `existing_${i}`, previewUrl: url, url, status: 'done' }));
+            renderImagePreviews();
+
+            updateLivePreview();
+            switchView('form');
+        }
+
+        function confirmDeleteProduct(id) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').innerText = 'Delete this product?';
+            document.getElementById('confirmText').innerText = 'This will permanently remove it from your catalog. This action cannot be undone.';
+            modal.classList.remove('hidden');
+
+            document.getElementById('confirmOkBtn').onclick = async () => {
+                modal.classList.add('hidden');
+                try {
+                    await apiRequest(`/products/${id}`, 'DELETE');
+                    invalidateCache('products');
+                    showToast('Product deleted successfully.');
+                    await fetchProductsFromBackend(true);
+                } catch (err) {
+                    showToast(`Failed to delete: ${err.message}`, true);
+                }
             };
             document.getElementById('confirmCancelBtn').onclick = () => {
                 modal.classList.add('hidden');
             };
         }
 
-        function applyTemplate(type) { 
-            showToast(type.charAt(0).toUpperCase() + type.slice(1) + " template applied!");
-            switchView('form');
+        /* COPY TELEGRAM FORMATTED POST TO CLIPBOARD */
+        function copyTelegramPost(id) {
+            const prod = products.find(p => p.id == id);
+            if (!prod) return;
+
+            let specsFormatted = '';
+            if (prod.specs) {
+                Object.keys(prod.specs).forEach(k => {
+                    specsFormatted += `• ${k}: ${prod.specs[k]}\n`;
+                });
+            }
+
+            const text = 
+`💻 *${prod.title}*
+💰 *Price:* ${prod.price} ETB
+🟢 *Status:* ${prod.status === 'available' ? 'Available' : 'Sold Out'}
+
+📋 *Specifications:*
+${specsFormatted}
+📞 *Phone:* ${prod.contact ? prod.contact.phone : '0911646359'}
+✈️ *Telegram:* ${prod.contact ? prod.contact.telegram : '@Yenusabr'}
+📍 *Address:* ${prod.contact ? prod.contact.address : 'Bole Medhanialem'}
+
+#NurTechnologies #Laptops #Ethiopia`;
+
+            copyToClipboard(text);
+            showToast("Copied Telegram post text to clipboard! ✈️");
         }
 
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+        }
+
+        /* ==========================================================================
+           PRODUCT DETAIL VIEW
+           ========================================================================== */
+        function viewProductDetail(id) {
+            const prod = products.find(p => p.id == id);
+            if (!prod) {
+                showToast('Product not found', true);
+                return;
+            }
+
+            const detailEl = document.getElementById('detailContent');
+            const mainImg = (prod.images && prod.images.length > 0) ? prod.images[0] : 'https://placehold.co/400x300/22c55e/ffffff?text=Laptop';
+            const isAvailable = prod.status === 'available';
+
+            let specsHtml = '';
+            if (prod.specs) {
+                Object.keys(prod.specs).forEach(k => {
+                    specsHtml += `<div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-xs"><span class="text-slate-400">${k}</span><span class="font-semibold text-slate-700 dark:text-slate-200">${prod.specs[k]}</span></div>`;
+                });
+            }
+
+            const imgThumbs = (prod.images || []).map(url => `<img src="${url}" class="w-16 h-16 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0">`).join('');
+
+            detailEl.innerHTML = `
+                <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative">
+                    <img src="${mainImg}" class="w-full h-48 object-cover">
+                    <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded-full ${isAvailable ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'} uppercase">${isAvailable ? 'In Stock' : 'Sold'}</span>
+                </div>
+                ${imgThumbs ? `<div class="flex gap-2 overflow-x-auto no-scrollbar">${imgThumbs}</div>` : ''}
+                <div>
+                    <h2 class="font-bold text-base">${prod.title}</h2>
+                    <p class="text-lg font-extrabold text-blue-600 dark:text-blue-400 mt-1">${prod.price} ETB</p>
+                </div>
+                <div class="glass-panel p-3.5 rounded-xl border">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Specifications</h3>
+                    ${specsHtml || '<p class="text-xs text-slate-400 italic">No specs listed.</p>'}
+                </div>
+                <div class="glass-panel p-3.5 rounded-xl border space-y-1 text-xs">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Contact</h3>
+                    <p>📞 ${prod.contact ? prod.contact.phone : '—'}</p>
+                    <p>✈️ ${prod.contact ? prod.contact.telegram : '—'}</p>
+                    <p>📍 ${prod.contact ? prod.contact.address : '—'}</p>
+                </div>
+            `;
+
+            document.getElementById('detailEditBtn').onclick = () => editProduct(id);
+            document.getElementById('detailDeleteBtn').onclick = () => confirmDeleteProduct(id);
+
+            switchView('detail');
+        }
+
+        /* ==========================================================================
+           THEME
+           ========================================================================== */
         function initThemeDetection() {
             const hasTelegram = window.Telegram && window.Telegram.WebApp;
             
@@ -1137,6 +1572,10 @@
             document.getElementById('statAvailable').innerText = availCount;
             document.getElementById('statSold').innerText = soldCount;
             document.getElementById('statOrders').innerText = sampleOrders ? sampleOrders.length : 0;
+
+            const newOrdersCount = sampleOrders ? sampleOrders.filter(o => (o.status || 'pending').toLowerCase() === 'pending').length : 0;
+            const badge = document.getElementById('ordersNewBadge');
+            if (badge) badge.innerText = `${newOrdersCount} New`;
 
             let filtered = products.filter(p => {
                 const matchesSearch = searchQuery === '' || 
@@ -1286,7 +1725,6 @@
                 return;
             }
 
-            // Status configuration mapping
             const statusConfig = {
                 pending: { label: 'Pending', emoji: '🟡', badgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' },
                 confirmed: { label: 'Confirmed', emoji: '🟢', badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' },
@@ -1484,9 +1922,8 @@
         async function updateOrderStatus(orderId, newStatus) {
             showLoader(`Updating status to ${newStatus.toUpperCase()}...`);
             try {
-                // PATCH /api/orders/{orderId}/status
                 await apiRequest(`/orders/${orderId}/status`, 'PATCH', { status: newStatus });
-                invalidateCache('orders'); // Clear order cache on mutation
+                invalidateCache('orders');
                 showToast(`Order status updated to ${newStatus.toUpperCase()}! 🚀`);
                 closeOrderDetail();
                 await fetchOrdersFromBackend(true);
@@ -1494,48 +1931,6 @@
                 showToast(`Failed to update status: ${err.message}`, true);
             } finally {
                 hideLoader();
-            }
-        }
-
-        /* COPY TELEGRAM FORMATTED POST TO CLIPBOARD */
-        function copyTelegramPost(id) {
-            const prod = products.find(p => p.id == id);
-            if (!prod) return;
-
-            let specsFormatted = '';
-            if (prod.specs) {
-                Object.keys(prod.specs).forEach(k => {
-                    specsFormatted += `• ${k}: ${prod.specs[k]}\n`;
-                });
-            }
-
-            const text = 
-`💻 *${prod.title}*
-💰 *Price:* ${prod.price} ETB
-🟢 *Status:* ${prod.status === 'available' ? 'Available' : 'Sold Out'}
-
-📋 *Specifications:*
-${specsFormatted}
-📞 *Phone:* ${prod.contact ? prod.contact.phone : '0911646359'}
-✈️ *Telegram:* ${prod.contact ? prod.contact.telegram : '@Yenusabr'}
-📍 *Address:* ${prod.contact ? prod.contact.address : 'Bole Medhanialem'}
-
-#NurTechnologies #Laptops #Ethiopia`;
-
-            copyToClipboard(text);
-            showToast("Copied Telegram post text to clipboard! ✈️");
-        }
-
-        function copyToClipboard(text) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text);
-            } else {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
             }
         }
 
